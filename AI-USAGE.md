@@ -108,4 +108,3 @@ it in your own words.
 - **File:** App.jsx (front-end portion)
 - **Commit:** https://github.com/venz-ochoa/SkinTect/commit/1818a8cbaa6cb963fcd7cb32ff436d20e6b996b9
 - **What it does and why we kept it:** Just displays a very basic, skeleton-like, interface solely for uploading an image and generating a response. Due to it being extremely basic, it was easily understandable. Will keep for now for more testing and integration with the database and user logins.
-
