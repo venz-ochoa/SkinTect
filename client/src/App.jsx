@@ -1,169 +1,91 @@
-import { useEffect, useState } from 'react'
-import { listSightings, createSighting, deleteSighting } from './api'
-import DemoNotice from './components/DemoNotice.jsx'
+import { useState, useRef } from "react";
 
-// A deliberately small working app. Replace all of it with your own project.
-//
-// What is worth keeping is the SHAPE: four states rather than two, a loading
-// message that admits a free-tier server can be slow to wake, and errors that
-// say something rather than rendering an empty list.
-
-const EMPTY_FORM = { place: '', description: '', spookiness: 3 }
+const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function App() {
-  const [status, setStatus] = useState('loading')   // loading | ready | error
-  const [rows, setRows] = useState([])
-  const [error, setError] = useState(null)
-  const [slow, setSlow] = useState(false)
-  const [form, setForm] = useState(EMPTY_FORM)
-  const [saving, setSaving] = useState(false)
+  //state variables for the file, preview, result, and loading state
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [result, setResult] = useState(null);
+  //aeshetic purposes...
+  const [loading, setLoading] = useState(false);
 
-  async function load() {
-    setStatus('loading')
-    setError(null)
-
-    // A free-tier API sleeps. If this is taking a while, say so rather than
-    // spinning silently, which looks broken. See page 6.
-    const timer = setTimeout(() => setSlow(true), 3000)
-
-    try {
-      setRows(await listSightings())
-      setStatus('ready')
-    } catch (caught) {
-      setError(caught)
-      setStatus('error')
-    } finally {
-      clearTimeout(timer)
-      setSlow(false)
-    }
+  //this function runs when the user selcts a take a photo or upload. only allows for one photo to be selected at a time
+  function pickFile(e) {
+    const picked = e.target.files[0];
+    //if didnt pick anything, return nothing
+    if (!picked) return;
+    //set file = what the user chose,
+    setFile(picked);
+    //set preview = a url to the image for displaying purposes, 
+    setPreview(URL.createObjectURL(picked));
+    //and set result = stores the json sent by the model from Google Cloud
+    setResult(null);
   }
 
-  useEffect(() => {
-    load()
-  }, [])
-
-  async function handleSubmit(event) {
-    event.preventDefault()
-    if (!form.place.trim()) return
-
-    setSaving(true)
+  //this function runs when the user taps on the analyze button
+  //sends the image to the server, waits for json result, then sets the result state to the json result
+  async function analyze() {
+    //processing
+    setLoading(true);
+    //result not yet returned, so set result to null
+    setResult(null);
     try {
-      const created = await createSighting({
-        place: form.place.trim(),
-        description: form.description.trim(),
-        spookiness: Number(form.spookiness),
-      })
-      setRows([created, ...rows])
-      setForm(EMPTY_FORM)
-    } catch (caught) {
-      setError(caught)
-    } finally {
-      setSaving(false)
+        //this is for the actual process
+        //create a new form data object to send the image to the server
+        const body = new FormData();
+        //append the image to the form data object
+        body.append("image", file);
+        //send the form data to the server, wait for the response, and parse it as json
+        const res = await fetch(API_URL, { method: "POST", body });
+        //turn it into json, throw an error if response is invalid or theres an error
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Request failed");
+        //set the result state to the json data returned by the server
+        setResult(data);
+      //just general error handling, catches stuff
+    } catch (err) {
+      setResult({ error: err.message });
     }
+    //everything is done no need to load it
+    setLoading(false);
   }
 
-  async function handleDelete(id) {
-    const previous = rows
-    setRows(rows.filter((row) => row.id !== id))   // optimistic
-    try {
-      await deleteSighting(id)
-    } catch (caught) {
-      setRows(previous)                            // put it back on failure
-      setError(caught)
-    }
-  }
+  //this is what claude generated for the UI
+return (
+    <div>
+      <h1>SkinTect</h1>
+      {/* A single input handles both camera and gallery automatically on mobile */}
+      <input type="file" accept="image/*" onChange={pickFile} />
 
-  return (
-    <div className="page">
-      <header>
-        <h1>HAUnted Sightings</h1>
-        <p className="lede">
-          Replace this with your own project. This one is here so the template
-          has something that works.
-        </p>
-      </header>
-
-      <DemoNotice />
-
-      {error && (
-        <p className="error" role="alert">
-          {error.message} <button onClick={load}>Try again</button>
-        </p>
+      {preview && (
+        <div>
+          <br />
+          <img src={preview} alt="preview" width="300" />
+          <br />
+          <button onClick={analyze} disabled={loading}>
+            {loading ? "Analyzing..." : "Analyze"}
+          </button>
+        </div>
       )}
 
-      <form onSubmit={handleSubmit} className="card">
-        <h2>Report a sighting</h2>
+      {result && !result.error && (
+        <div>
+          {/*  This is the output of Error 2
+          <li>Malignant: {(result.malignant_confidence * 100).toFixed(2)}%</li>
+          <li>Benign: {(result.benign_confidence * 100).toFixed(2)}%</li>*/}
 
-        <label htmlFor="place">Place</label>
-        <input
-          id="place"
-          value={form.place}
-          onChange={(event) => setForm({ ...form, place: event.target.value })}
-          maxLength={120}
-          required
-        />
+          <h2>Prediction: {result.prediction}</h2>
+          <p>Benign: {(result.probabilities.benign * 100).toFixed(1)}%</p>
+          <p>Malignant: {(result.probabilities.malignant * 100).toFixed(1)}%</p>
 
-        <label htmlFor="description">What happened</label>
-        <textarea
-          id="description"
-          value={form.description}
-          onChange={(event) => setForm({ ...form, description: event.target.value })}
-          maxLength={2000}
-          rows={3}
-        />
-
-        <label htmlFor="spookiness">Spookiness, 1 to 5</label>
-        <input
-          id="spookiness"
-          type="number"
-          min="1"
-          max="5"
-          value={form.spookiness}
-          onChange={(event) => setForm({ ...form, spookiness: event.target.value })}
-          required
-        />
-
-        <button type="submit" disabled={saving}>
-          {saving ? 'Saving...' : 'Add sighting'}
-        </button>
-      </form>
-
-      {/* Four states. Empty and error are different things and must not look
-          the same: an empty list means "nothing here yet", an error means
-          "we could not find out". */}
-      {status === 'loading' && (
-        <p className="muted">
-          Loading{slow ? '. The server may be waking up, which can take up to a minute.' : '...'}
-        </p>
+          {/* This is output of Error 3 during week 2 
+          <p>Unclassified: 0.0%</p> */}
+        </div>
       )}
-
-      {status === 'ready' && rows.length === 0 && (
-        <p className="muted">No sightings reported yet. Add the first one above.</p>
-      )}
-
-      {status === 'ready' && rows.length > 0 && (
-        <ul className="list">
-          {rows.map((row) => (
-            <li key={row.id} className="card">
-              <div className="row-head">
-                <h3>{row.place}</h3>
-                <span className="spooky" aria-label={`Spookiness ${row.spookiness} of 5`}>
-                  {'*'.repeat(row.spookiness)}
-                </span>
-              </div>
-              {row.description
-                ? <p>{row.description}</p>
-                : <p className="muted">No description given.</p>}
-              <footer>
-                <time dateTime={row.reported_at}>
-                  {new Date(row.reported_at).toLocaleString()}
-                </time>
-                <button onClick={() => handleDelete(row.id)}>Delete</button>
-              </footer>
-            </li>
-          ))}
-        </ul>
-      )}
+      
+      {result?.error && <p>{result.error}</p>}
     </div>
-  )
+  );
 }
