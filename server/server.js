@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
+import bcrypt from 'bcryptjs'
 import { pool } from './db/pool.js'
-import * as sightings from './sightingsRepo.js'
 
 const app = express()
 
@@ -36,75 +36,66 @@ app.get('/readyz', async (request, response) => {
   }
 })
 
-// Validation lives on the server because the client can be bypassed. The
-// browser form is for a fast, friendly message; this is for correctness.
-function validate(body) {
-  const errors = []
-  const place = typeof body.place === 'string' ? body.place.trim() : ''
-  const description =
-    typeof body.description === 'string' ? body.description.trim() : ''
-  const spookiness = Number(body.spookiness)
+//this is for user signup
+//first checks if the email is a string, and then checks if its empty, if it is, returns null which is a falsy
+//same goes for the password
+app.post('/api/signup', async (request, response, next) => {
+  const email = typeof request.body.email === 'string' ? request.body.email.trim() : ''
+  const password = typeof request.body.password === 'string' ? request.body.password : ''
 
-  if (!place) errors.push('place is required')
-  if (place.length > 120) errors.push('place must be 120 characters or fewer')
-  if (description.length > 2000) errors.push('description must be 2000 characters or fewer')
-  if (!Number.isInteger(spookiness) || spookiness < 1 || spookiness > 5) {
-    errors.push('spookiness must be a whole number from 1 to 5')
+  //if the email is empty, ask user to input
+  if (!email) return response.status(400).json({ error: 'email is required' })
+  //if password is less than 6 characters, ask user to input stronger and longer password
+  if (password.length < 6) {
+    return response.status(400).json({ error: 'password must be at least 6 characters' })
   }
 
-  return { errors, value: { place, description, spookiness } }
-}
-
-app.get('/api/sightings', async (request, response, next) => {
+  //this checks if the email is already registered, each email must be unique
   try {
-    response.json(await sightings.getAll(pool))
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email])
+    if (existing.rows.length > 0) {
+      return response.status(409).json({ error: 'An account with that email already exists' })
+    }
+
+  //this is a encryption thing for security. hashes the password instead of storing it raw.
+  //once hashed, stores the email and the hashed password.
+  //the number 10 means the password is hashed 10 times, which makes it a lot more secure than single hashes
+    const password_hash = await bcrypt.hash(password, 10)
+    const { rows } = await pool.query(
+      `INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email`,
+      [email, password_hash]
+    )
+    response.status(201).json(rows[0])
   } catch (error) {
     next(error)
   }
 })
 
-app.get('/api/sightings/:id', async (request, response, next) => {
-  try {
-    const row = await sightings.getById(pool, request.params.id)
-    if (!row) return response.status(404).json({ error: 'Not found' })
-    response.json(row)
-  } catch (error) {
-    next(error)
+//this is for user login
+//if email and password is null, returns an error since its a falsy
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body || {}
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' })
   }
-})
-
-app.post('/api/sightings', async (request, response, next) => {
-  const { errors, value } = validate(request.body ?? {})
-  if (errors.length > 0) return response.status(400).json({ error: errors.join('; ') })
-
-  try {
-    response.status(201).json(await sightings.create(pool, value))
-  } catch (error) {
-    next(error)
+ 
+  //if the email and password is valid, it checks if it exists in the database
+  const { rows } = await pool.query('SELECT id, email, password_hash FROM users WHERE email = $1', [email])
+  const user = rows[0]
+  //if it doesnt exist, then it returns incorrect email or password
+  if (!user) {
+    return res.status(401).json({ error: 'Incorrect email or password' })
   }
-})
-
-app.put('/api/sightings/:id', async (request, response, next) => {
-  const { errors, value } = validate(request.body ?? {})
-  if (errors.length > 0) return response.status(400).json({ error: errors.join('; ') })
-
-  try {
-    const row = await sightings.update(pool, request.params.id, value)
-    if (!row) return response.status(404).json({ error: 'Not found' })
-    response.json(row)
-  } catch (error) {
-    next(error)
+ 
+  //if it does exist, it hashes the password and compares it to the one hased in the database
+  //if its not the same, throws an error
+  const match = await bcrypt.compare(password, user.password_hash)
+  if (!match) {
+    return res.status(401).json({ error: 'Incorrect email or password' })
   }
-})
-
-app.delete('/api/sightings/:id', async (request, response, next) => {
-  try {
-    const removed = await sightings.remove(pool, request.params.id)
-    if (!removed) return response.status(404).json({ error: 'Not found' })
-    response.status(204).end()
-  } catch (error) {
-    next(error)
-  }
+ 
+  //if everything passes, it returns the user id and the email, but not the password
+  res.json({ id: user.id, email: user.email })
 })
 
 app.use((request, response) => {
