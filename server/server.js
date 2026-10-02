@@ -2,6 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import bcrypt from 'bcryptjs'
 import { pool } from './db/pool.js'
+import session from 'express-session'
+import connectPgSimple from 'connect-pg-simple'
 
 const app = express()
 
@@ -16,8 +18,29 @@ const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173')
   .map((origin) => origin.trim())
   .filter(Boolean)
 
-app.use(cors({ origin: allowedOrigins }))
+const PgStore = connectPgSimple(session)
+const isProd = process.env.NODE_ENV === 'production'
+
+app.set('trust proxy', 1)
+app.use(cors({ origin: allowedOrigins, credentials: true })) // credentials lets the cookie through
 app.use(express.json({ limit: '100kb' }))
+
+//this is for saving the current user session in the database
+//lets actions user did like scans they want to save, are saved under the correct user 
+app.use(session({
+  //if session table doesnt exist
+  store: new PgStore({ pool, createTableIfMissing: true }), 
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,                     
+    secure: isProd,                      
+    sameSite: isProd ? 'none' : 'lax',   
+    maxAge: 1000 * 60 * 60 * 24 * 7,     
+  },
+}))
+
 
 // Is the process alive?
 app.get('/healthz', (request, response) => {
@@ -93,9 +116,27 @@ app.post('/api/login', async (req, res) => {
   if (!match) {
     return res.status(401).json({ error: 'Incorrect email or password' })
   }
- 
+  
+  //save the user to the session
+  req.session.user = { id: user.id, email: user.email }
+
   //if everything passes, it returns the user id and the email, but not the password
   res.json({ id: user.id, email: user.email })
+})
+
+//returns the currently logged-in user or an error if they are not logged in
+app.get('/api/me', (req, res) => {
+  if (req.session.user) {
+    res.json(req.session.user)
+  } else {
+    res.status(401).json({ error: 'Not authenticated' })
+  }
+})
+
+//destroys the session cookie to log the user out
+app.post('/api/logout', (req, res) => {
+  req.session.destroy()
+  res.json({ message: 'Logged out' })
 })
 
 app.use((request, response) => {

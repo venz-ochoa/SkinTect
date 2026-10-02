@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Card from "../components/Card";
 import FormField from "../components/FormField";
 import Button from "../components/Button";
@@ -10,8 +10,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [status, setStatus] = useState(null); // null | "loading" | "done" | { error }
-  const navigate = useNavigate();
+  const [status, setStatus] = useState(null); //null | "loading" | "done" | { error }
     
   //defaults to loading
   async function handleSubmit(e) {
@@ -20,15 +19,16 @@ export default function Login() {
     try {
     //this is where we use the fetch api made in server.js
         const res = await fetch(`${API_BASE_URL}/api/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Login failed");
         setStatus("done");
-        //once the login is successful, sends user back to the home page
-        navigate("/");
+        //when user successfully logs in, it sends them to the home page
+        window.location = "/";
     } catch (err) {
       setStatus({ error: err.message });
     }
@@ -54,6 +54,12 @@ export default function Login() {
               {status === "loading" ? "Logging in..." : "Log in"}
             </Button>
             {status?.error && <p className="text-malignant">{status.error}</p>}
+            <p className="text-center text-sm mt-2">
+              Don't have an account?{" "}
+              <Link to="/signup" className="text-primary hover:underline font-bold">
+                Sign up
+              </Link>
+            </p>
           </form>
         )}
       </Card>
