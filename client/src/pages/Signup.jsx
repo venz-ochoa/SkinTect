@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Card from "../components/Card";
 import FormField from "../components/FormField";
 import Button from "../components/Button";
@@ -20,12 +21,15 @@ export default function SignUp() {
     try {
       const res = await fetch(`${API_BASE_URL}/api/signup`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      });
+    });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Sign up failed");
       setStatus("done");
+      //when user successfully signs up, it sends them to the home page
+      window.location = "/";
     } catch (err) {
       setStatus({ error: err.message });
     }
@@ -52,6 +56,12 @@ export default function SignUp() {
               {status === "loading" ? "Signing up..." : "Sign up"}
             </Button>
             {status?.error && <p className="text-malignant">{status.error}</p>}
+            <p className="text-center text-sm mt-2">
+              Already have an account?{" "}
+              <Link to="/login" className="text-primary hover:underline font-bold">
+                Log in
+              </Link>
+            </p>
           </form>
         )}
       </Card>
