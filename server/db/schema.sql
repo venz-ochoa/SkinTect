@@ -12,3 +12,12 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT        NOT NULL,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS scans (
+  id                     SERIAL PRIMARY KEY,
+  photo                  BYTEA       NOT NULL,
+  heatmap                TEXT        NOT NULL,
+  prediction             TEXT        NOT NULL,
+  malignant_probability  REAL        NOT NULL,
+  created_at             TIMESTAMPTZ NOT NULL DEFAULT now()
+);
