@@ -12,6 +12,7 @@ export default function Home() {
   const [result, setResult] = useState(null);
   //aeshetic purposes...
   const [loading, setLoading] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   //this function runs when the user selcts a take a photo or upload. only allows for one photo to be selected at a time
   function pickFile(e) {
@@ -58,18 +59,18 @@ export default function Home() {
   return (
     <main className="max-w-md mx-auto p-4 flex flex-col gap-6">
       <h1 className="text-2xl font-bold">Scan a lesion</h1>
-
       <Card>
         <input type="file" accept="image/*" onChange={pickFile} />
-
         {preview && (
           <div className="flex flex-col gap-3 mt-3">
-            <img src={preview} alt="Selected lesion" className="rounded-md w-full" />
+            <img src={showHeatmap && result?.heatmap ? result.heatmap : preview} alt="Selected lesion" className="rounded-md w-full" />
+            {result?.heatmap && (
+              <Button onClick={() => setShowHeatmap(!showHeatmap)}>Heat map</Button>
+            )}
             <Button onClick={analyze} disabled={loading}>
-              {loading ? "Analyzing..." : "Analyze"}
+            {loading ? "Analyzing..." : "Analyze"}
             </Button>
-          </div>
-        )}
+          </div>)}
       </Card>
 
       {result && !result.error && (
