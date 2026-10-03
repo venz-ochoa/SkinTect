@@ -8,6 +8,7 @@ import SignUp from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import History from "./pages/History";
+import "./lib/authFetch";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -43,7 +44,7 @@ export default function App() {
           <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />          
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login onLogin={refreshUser} />} />          
-          <Route path="/profile" element={<Profile onLogout={() => setUser(null)} />} />        
+          <Route path="/profile" element={<Profile onLogout={() => { localStorage.removeItem("token"); setUser(null); }} />} />          <Route path="/history" element={<History />} />
           </Routes>
         {/* displays the footer disclaimer, this is a one time thing per user */}
         <FooterDisclaimer />

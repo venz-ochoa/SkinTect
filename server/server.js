@@ -6,6 +6,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import multer from "multer";
 import fs from "node:fs";
+import jwt from "jsonwebtoken";
 
 const app = express();
 
@@ -32,19 +33,20 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-app.use(
-  session({
-    store: new PgStore({ pool, createTableIfMissing: true }),
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
-      maxAge: 1000 * 60 * 60 * 24, // 24 hours
-    },
-  }),
-);
+//reads the login token from the Authorization header instead of a cookie
+//it fills in req.session so every route below keeps working unchanged
+app.use((req, res, next) => {
+  let user = null;
+  const header = req.headers.authorization || "";
+  if (header.startsWith("Bearer ")) {
+    try {
+      const p = jwt.verify(header.slice(7), process.env.SESSION_SECRET);
+      user = { id: p.id, email: p.email };
+    } catch {}
+  }
+  req.session = { user, destroy: (cb) => cb && cb() };
+  next();
+});
 
 //the body areas a scan can be tagged with, keep this list in sync with src/lib/bodyLocations.js
 const BODY_LOCATIONS = [
@@ -198,7 +200,12 @@ app.post("/api/login", async (req, res, next) => {
     req.session.user = { id: user.id, email: user.email };
     //if everything passes, it returns the user id and the email, but not the password
     //the theme comes back too so the page can switch to the saved theme right after logging in
-    res.json({ id: user.id, email: user.email, theme: user.theme });
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.SESSION_SECRET,
+      { expiresIn: "7d" },
+    );
+    res.json({ id: user.id, email: user.email, theme: user.theme, token });
   } catch (error) {
     next(error);
   }

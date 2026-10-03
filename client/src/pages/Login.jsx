@@ -27,7 +27,8 @@ export default function Login({onLogin}) {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Login failed");
-        await onLogin();      
+        localStorage.setItem("token", data.token);
+        await onLogin();    
         setStatus("done");
         //when user successfully logs in, it sends them to the home page
         navigate("/");
