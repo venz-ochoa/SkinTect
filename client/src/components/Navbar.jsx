@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 //this is for navigation
 //instead of creating a single clickable text for the nav bar, we just map it instead
 const LINKS = [
@@ -11,28 +9,20 @@ const LINKS = [
   { to: "/login", label: "Log in" },
 ];
 
-export default function NavBar() {
-  const [user, setUser] = useState(null);
+export default function NavBar({ user }) {
   //this is for the UI, checks whether the hamburger menu is open on mobile
   const [open, setOpen] = useState(false);
 
   //useLocation makes the navbar recheck the route on every page change
   const location = useLocation();
 
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/api/me`, { credentials: "include" })
-      .then((r) => r.json())
-      //the server sends an error object when logged out, so user stays null
-      .then((d) => setUser(d.error ? null : d));
-  }, [location.pathname]);
-
   //navbar is hidden when the page is in login or signup mode
   if (location.pathname === "/login" || location.pathname === "/signup") {
     return null;
   }
 
-  const links = user ? [{ to: "/", label: "Home" }, { to: "/profile", label: "Profile" }] : LINKS;
-  const focusRing =
+    const links = user ? [{ to: "/", label: "Home" }, { to: "/profile", label: "Profile" }] : LINKS;
+    const focusRing =
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2";
   return (
     <header className="st-drop border-b border-text/20 bg-bg">

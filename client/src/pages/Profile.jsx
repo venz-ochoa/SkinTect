@@ -30,7 +30,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 //this is for displaying the user profile
 export default function Profile() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(undefined);
 
   //this is for editing
   const [isEditing, setIsEditing] = useState(false);
@@ -44,11 +44,11 @@ export default function Profile() {
 
   //this is where we get user data and then have it displayed on their profile
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/me`, { credentials: "include" })
-      .then((r) => r.json())
-      //saves the user credential into user, such as email and name (to be added)
-      .then(setUser);
-  }, []);
+  fetch(`${API_BASE_URL}/api/me`, { credentials: "include" })
+    .then((r) => r.json())
+    .then((d) => setUser(d.error ? null : d))
+    .catch(() => setUser(null));
+}, []);
 
   //when the user logs out, it redirects them back to the signup page
   async function logout() {
@@ -238,9 +238,17 @@ export default function Profile() {
     { icon: logoutIcon, title: "Log out", onClick: logout },
   ];
 
-  //not logged in, the server sends back an error object instead of null
-  if (!user || user.error) {
-    return (
+//not logged in, the server sends back an error object instead of null
+if (user === undefined) {
+  return (
+    <main className="mx-auto max-w-md px-4 py-8 md:px-6">
+      <p className="text-base text-text/70">Loading...</p>
+    </main>
+  );
+}
+
+if (user === null) {
+  return (
       <main className="mx-auto max-w-md px-4 py-8 md:px-6">
         <Card>
           <div className="flex flex-col items-center gap-4 p-4 text-center">
