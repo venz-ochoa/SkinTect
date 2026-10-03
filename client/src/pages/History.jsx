@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import Badge from "../components/Badge";
@@ -8,6 +9,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 //this is for displaying the user's past scans
 export default function History() {
+  const navigate = useNavigate();
   const [scans, setScans] = useState([]);
   //stores the id of the scan the user tapped on to show the dropdown
   const [expanded, setExpanded] = useState(null);
@@ -94,7 +96,7 @@ export default function History() {
             </div>
           )}
         </div>
-        <Button variant="secondary" onClick={() => window.location = "/profile"}>Back to Profile</Button>
+        <Button variant="secondary" onClick={() => navigate("/profile")}>Back to Profile</Button>
       </div>
 
       {loggedOut || list.length === 0 ? (
@@ -117,7 +119,7 @@ export default function History() {
                   </div>
                 </>
               )}
-              <Button variant="primary" onClick={() => window.location = loggedOut ? "/login" : "/"}>
+              <Button variant="primary" onClick={() => navigate(loggedOut ? "/login" : "/")}>
                 {loggedOut ? "Log in" : "Scan a lesion"}
               </Button>
             </div>

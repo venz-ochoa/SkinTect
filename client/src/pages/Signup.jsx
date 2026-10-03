@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import FormField from "../components/Formfield";
 import Button from "../components/Button";
 
@@ -7,6 +7,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 //this is for sign up
 export default function SignUp() {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +31,7 @@ export default function SignUp() {
       if (!res.ok) throw new Error(data.error || "Sign up failed");
       setStatus("done");
       //when user successfully signs up, it sends them to the login page
-      window.location = "/login";
+      navigate("/login");
     } catch (err) {
       setStatus({ error: err.message });
     }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import FormField from "../components/Formfield";
 import Button from "../components/Button";
 
@@ -7,6 +7,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 //this is for the user login page
 export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +29,7 @@ export default function Login() {
         if (!res.ok) throw new Error(data.error || "Login failed");
         setStatus("done");
         //when user successfully logs in, it sends them to the home page
-        window.location = "/";
+        navigate("/");
     } catch (err) {
       setStatus({ error: err.message });
     }
