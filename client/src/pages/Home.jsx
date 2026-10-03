@@ -85,7 +85,6 @@ export default function Home() {
     }
   }
 
-  //claude generated UI
   //icons come from the svg folder, loaded here so nothing above the marker changes
   const icon = (name) => new URL(`../images/svg/${name}.svg`, import.meta.url).href;
   //every icon below is one short tag, the size is a tailwind class
