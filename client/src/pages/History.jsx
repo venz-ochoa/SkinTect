@@ -14,13 +14,15 @@ export default function History() {
   //stores the id of the scan the user tapped on to show the dropdown
   const [expanded, setExpanded] = useState(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   //this is where we get the user's history from the backend
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/scans`, { credentials: "include" })
       .then((r) => r.json())
-      //saves the array of scans into the state
-      .then(setScans);
+      .then((d) => setScans(Array.isArray(d) ? d : { error: true }))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   //claude generated UI
@@ -99,8 +101,9 @@ export default function History() {
         <Button variant="secondary" onClick={() => navigate("/profile")}>Back to Profile</Button>
       </div>
 
-      {loggedOut || list.length === 0 ? (
-        <div className="st-pop mx-auto w-full max-w-md">
+      {loading ? (
+        <p className="st-fade text-center text-base text-text/70">Loading your scans...</p>
+      ) : loggedOut || list.length === 0 ? (        <div className="st-pop mx-auto w-full max-w-md">
           <Card>
             <div className={`flex flex-col items-center gap-4 text-center [&>button]:w-full ${loggedOut ? "p-4" : "p-6"}`}>
               {loggedOut ? (
