@@ -39,7 +39,7 @@ export default function App() {
       <div className="min-h-screen bg-bg text-text">
         {/* displays the consent modal for cookies and privacy policy, this is a one time thing per user */}
         <ConsentModal />
-        <NavBar />
+        <NavBar user={user} />        
         <Routes>
           <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />          
           <Route path="/signup" element={<SignUp />} />

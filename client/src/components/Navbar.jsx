@@ -18,14 +18,7 @@ export default function NavBar() {
 
   //useLocation makes the navbar recheck the route on every page change
   const location = useLocation();
-
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/api/me`, { credentials: "include" })
-      .then((r) => r.json())
-      //the server sends an error object when logged out, so user stays null
-      .then((d) => setUser(d.error ? null : d));
-  }, [location.pathname]);
-
+  
   //navbar is hidden when the page is in login or signup mode
   if (location.pathname === "/login" || location.pathname === "/signup") {
     return null;
