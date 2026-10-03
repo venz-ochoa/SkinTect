@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 import { pool } from './db/pool.js'
 import session from 'express-session'
 import connectPgSimple from 'connect-pg-simple'
+import multer from 'multer'
 
 const app = express()
 
@@ -20,6 +21,7 @@ const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173')
 
 const PgStore = connectPgSimple(session)
 const isProd = process.env.NODE_ENV === 'production'
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
 
 app.set('trust proxy', 1)
 app.use(cors({ origin: allowedOrigins, credentials: true })) // credentials lets the cookie through
@@ -125,20 +127,58 @@ app.post('/api/login', async (req, res) => {
   if (!match) {
     return res.status(401).json({ error: 'Incorrect email or password' })
   }
-  
+
   //save the user to the session
   req.session.user = { id: user.id, email: user.email }
-
   //if everything passes, it returns the user id and the email, but not the password
   res.json({ id: user.id, email: user.email })
 })
 
 //returns the currently logged-in user or an error if they are not logged in
-app.get('/api/me', (req, res) => {
-  if (req.session.user) {
-    res.json(req.session.user)
-  } else {
-    res.status(401).json({ error: 'Not authenticated' })
+app.get('/api/me', async (req, res, next) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' })
+
+  pool.query("SELECT id, name, email, encode(profile, 'base64') AS profile FROM users WHERE id = $1", [req.session.user.id])
+    .then(({ rows }) => res.json(rows[0]))
+    .catch(next)
+})
+
+//this is for updating the profile pic 
+app.post('/api/me/profile', upload.single('image'), async (req, res, next) => {
+  if (!req.session.user || !req.file) return res.status(400).json({ error: 'Invalid request' })
+  
+  pool.query('UPDATE users SET profile = $1 WHERE id = $2', [req.file.buffer, req.session.user.id])
+    .then(() => res.json({ message: 'Updated' }))
+    .catch(next)
+})
+
+//this is for updating the user profile, such as name and password and profile picture
+app.put('/api/me', async (req, res, next) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' })
+  const { name, password } = req.body
+
+  try {
+    //if the user provided a new name, validate and update it
+    if (name) {
+      const nameRegex = /^[a-zA-Z\s]+$/;
+      if (!nameRegex.test(name)) return res.status(400).json({ error: 'Name must only contain letters' })
+      await pool.query('UPDATE users SET name = $1 WHERE id = $2', [name, req.session.user.id])
+    }
+
+    //if the user provided a new password, validate, hash, and update it
+    if (password) {
+      const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).+$/;
+      if (!passwordRegex.test(password) || password.length < 6) {
+        return res.status(400).json({ error: 'Password must contain at least one letter, one number, and one symbol' })
+      }
+      const hash = await bcrypt.hash(password, 10)
+      await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, req.session.user.id])
+    }
+
+    //successful update
+    res.json({ message: 'Profile updated' })
+  } catch (error) {
+    next(error)
   }
 })
 
