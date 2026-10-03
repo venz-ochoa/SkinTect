@@ -543,7 +543,7 @@ app.use((error, request, response, next) => {
 const port = process.env.PORT || 3000;
 
 await pool.query(
-  fs.readFileSync(new URL("./schema.sql", import.meta.url), "utf8"),
+  fs.readFileSync(new URL("../schema.sql", import.meta.url), "utf8"),
 );
 
 //adds the theme column the first time the server starts, safe to run again every start
