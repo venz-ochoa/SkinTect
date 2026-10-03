@@ -527,6 +527,29 @@ app.post("/api/logout", (req, res) => {
   endSession(req, res, "Logged out");
 });
 
+//forwards the photo to the model server, so the browser never calls the http address directly
+app.post("/api/predict", upload.single("image"), async (req, res, next) => {
+  if (!req.file) return res.status(400).json({ error: "Image is required" });
+  try {
+    const form = new FormData();
+    form.append(
+      "image",
+      new Blob([req.file.buffer], { type: req.file.mimetype }),
+      req.file.originalname || "image.jpg",
+    );
+    const r = await fetch(process.env.MODEL_URL, {
+      method: "POST",
+      body: form,
+    });
+    const data = await r
+      .json()
+      .catch(() => ({ error: "Bad response from model" }));
+    res.status(r.status).json(data);
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use((request, response) => {
   response.status(404).json({ error: "No such route" });
 });
