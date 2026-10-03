@@ -40,10 +40,11 @@ export default function App() {
         <ConsentModal />
         <NavBar />
         <Routes>
-          <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />          <Route path="/signup" element={<SignUp />} />
-          <Route path="/login" element={<Login onLogin={refreshUser} />} />          <Route path="/profile" element={<Profile />} />
-          <Route path="/history" element={<History />} />
-        </Routes>
+          <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />          
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/login" element={<Login onLogin={refreshUser} />} />          
+          <Route path="/profile" element={<Profile onLogout={() => setUser(null)} />} />        
+          </Routes>
         {/* displays the footer disclaimer, this is a one time thing per user */}
         <FooterDisclaimer />
       </div>
