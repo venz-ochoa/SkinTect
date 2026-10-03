@@ -8,18 +8,25 @@ import multer from "multer";
 import fs from "node:fs";
 
 const app = express();
+
+// 1. Trust proxy MUST be at the very top of the app
 app.set("trust proxy", 1);
 
-// CORS before the routes. Middleware registered after a route never sees that
-// route's requests, which is the m4 lesson showing up in production.
-//
-// Name your origins. app.use(cors()) with no options sends
-// Access-Control-Allow-Origin: *, which lets any site on the internet call this
-// API from a visitor's browser, and is incompatible with cookies.
+// 2. Clean up the URL to prevent trailing slash CORS errors
 const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
+
+// 3. Actually use the cleaned 'allowedOrigins' array here
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+);
+
+app.use(express.json({ limit: "100kb" }));
 
 const PgStore = connectPgSimple(session);
 const isProd = process.env.NODE_ENV === "production";
@@ -27,6 +34,21 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
 });
+
+// 4. Attach the database store so Render doesn't instantly wipe sessions
+app.use(
+  session({
+    store: new PgStore({ pool }), // <--- THIS WAS MISSING
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    },
+  }),
+);
 
 //the body areas a scan can be tagged with, keep this list in sync with src/lib/bodyLocations.js
 const BODY_LOCATIONS = [
@@ -53,17 +75,13 @@ const BODY_LOCATIONS = [
   "other",
 ];
 
-//returns the location if it is valid, null if it was left empty, or undefined if it is not a real body area
 function cleanLocation(value) {
   if (value === undefined || value === null || value === "") return null;
   return BODY_LOCATIONS.includes(value) ? value : undefined;
 }
 
-//the two themes an account can save, light is the default for every new account
 const THEMES = ["light", "dark"];
 
-//ends the login session and removes the cookie from the browser, then sends the message
-//the cookie options have to match the ones used when it was created or the browser keeps it
 function endSession(req, res, message) {
   req.session.destroy(() => {
     res.clearCookie("connect.sid", {
@@ -74,30 +92,6 @@ function endSession(req, res, message) {
     res.json({ message });
   });
 }
-
-app.set("trust proxy", 1);
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGINS,
-    credentials: true,
-  }),
-);
-app.use(express.json({ limit: "100kb" }));
-
-//this is for saving the current user session in the database
-//lets actions user did like scans they want to save, are saved under the correct user
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: true,
-      sameSite: "none", //allows the cookie to be sent to a different domain
-      maxAge: 1000 * 60 * 60 * 24, //24 hours (optional but good practice)
-    },
-  }),
-);
 
 // Is the process alive?
 app.get("/healthz", (request, response) => {
