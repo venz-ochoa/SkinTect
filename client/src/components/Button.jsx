@@ -1,9 +1,10 @@
 // Button — filled (primary) or outline (secondary)
 export default function Button({ variant = "primary", type = "button", onClick, children, disabled }) {
+  //colors come from the theme variables so they switch with dark mode, bg-white and text-white on a light fill did not
   const styles =
     variant === "primary"
-      ? "bg-accent text-white"
-      : "bg-white text-text border border-primary";
+      ? "bg-primary text-white"
+      : "bg-bg text-text border border-primary";
 
   return (
     <button

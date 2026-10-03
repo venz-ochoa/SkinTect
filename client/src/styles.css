@@ -6,6 +6,7 @@
 @config "../tailwind.config.js";
 
 :root {
+  color-scheme: light;
   --color-primary: #6B8873;
   --color-accent: #A3B18A;
   --color-bg: #FFFFFF;
@@ -13,4 +14,32 @@
   --color-text: #2E3B30;
   --color-benign: #0D9488;
   --color-malignant: #DC2626;
+}
+
+/* dark mode: only when the user turns it on in the app. the default is always light, the device setting is ignored.
+   primary and accent stay the same so white text on primary buttons still works.
+   benign and malignant are lighter so they stay readable on dark backgrounds */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #151A17;
+  --color-surface: #262E29;
+  --color-text: #F1F5F2;
+  --color-benign: #4FCDB8;
+  --color-malignant: #F28B82;
+}
+
+/* the little gap between an element and its focus ring (ring-offset-2) is white by default,
+   which shows up as a bright halo in dark mode, so it follows the page background instead */
+*, ::before, ::after {
+  --tw-ring-offset-color: var(--color-bg);
+}
+
+/* the page itself follows the theme too, otherwise the area outside the cards stays white */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  body { transition: background-color 0.25s ease, color 0.25s ease; }
 }
