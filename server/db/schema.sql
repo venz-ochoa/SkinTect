@@ -22,5 +22,9 @@ CREATE TABLE IF NOT EXISTS scans (
   heatmap                TEXT        NOT NULL,
   prediction             TEXT        NOT NULL,
   malignant_probability  REAL        NOT NULL,
+  body_location          TEXT,
   created_at             TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE scans ADD COLUMN IF NOT EXISTS body_location TEXT;
+CREATE INDEX IF NOT EXISTS scans_user_created_idx ON scans (user_id, created_at DESC);

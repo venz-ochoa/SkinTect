@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import NavBar from "./components/Navbar";
+import ConsentModal from "./components/ConsentModal";
+import { FooterDisclaimer } from "./components/Disclaimer";
 import Home from "./pages/Home";
 import SignUp from "./pages/Signup";
 import Login from "./pages/Login";
@@ -27,10 +29,12 @@ export default function App() {
     return <div className="min-h-screen bg-bg text-text p-4">Loading...</div>;
   }
 
-//haha routes, similar to dart.. i miss dart..
- return (
+  //haha routes, similar to dart.. i miss dart..
+  return (
     <BrowserRouter>
       <div className="min-h-screen bg-bg text-text">
+        {/* displays the consent modal for cookies and privacy policy, this is a one time thing per user */}
+        <ConsentModal />
         <NavBar />
         <Routes>
           <Route path="/" element={user ? <Home /> : <Navigate to="/signup" />} />
@@ -39,6 +43,8 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/history" element={<History />} />
         </Routes>
+        {/* displays the footer disclaimer, this is a one time thing per user */}
+        <FooterDisclaimer />
       </div>
     </BrowserRouter>
   );

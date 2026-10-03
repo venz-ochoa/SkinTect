@@ -1,13 +1,21 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Final Project</title>
-    <meta name="description" content="Rename this, and write a real description. It is what a link preview shows." />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SkinTect</title>
+<meta name="description" content="SkinTect is a revolutionary skin health monitoring app." />
+<script>
+  var d = document.documentElement;
+  if (localStorage.theme === "dark" && !/^\/(login|signup)/.test(location.pathname)) d.dataset.theme = "dark";
+  fetch("%VITE_API_BASE_URL%/api/me", { credentials: "include" })
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (me) { d.dataset.theme = localStorage.theme = me.theme || "light"; })
+    .catch(function () {});
+</script>
+</head>
+<body>
+<div id="root"></div>
+<script type="module" src="/src/main.jsx"></script>
+</body>
 </html>
