@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import SignUp from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import History from "./pages/History";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/history" element={<History />} />
         </Routes>
       </div>
     </BrowserRouter>

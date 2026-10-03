@@ -182,6 +182,42 @@ app.put('/api/me', async (req, res, next) => {
   }
 })
 
+//this is for saving a user's scan
+app.post('/api/scans', upload.single('photo'), async (req, res, next) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' })
+  if (!req.file) return res.status(400).json({ error: 'Photo is required' })
+
+  //save this to the database
+  const { heatmap, prediction, malignant_probability } = req.body
+
+  //inserts if everything is good
+  try {
+    await pool.query(
+      'INSERT INTO scans (user_id, photo, heatmap, prediction, malignant_probability) VALUES ($1, $2, $3, $4, $5)',
+      [req.session.user.id, req.file.buffer, heatmap, prediction, malignant_probability]
+    )
+    res.json({ message: 'Scan saved' })
+  } catch (error) {
+    next(error)
+  }
+})
+
+//fetch the user scan history
+app.get('/api/scans', async (req, res, next) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' })
+  
+  try {
+    //encode(photo, 'base64') turns the image into a string so the frontend can read it
+    const { rows } = await pool.query(
+      "SELECT id, encode(photo, 'base64') AS photo, heatmap, prediction, malignant_probability, created_at FROM scans WHERE user_id = $1 ORDER BY created_at DESC",
+      [req.session.user.id]
+    )
+    res.json(rows)
+  } catch (error) {
+    next(error)
+  }
+})
+
 //destroys the session cookie to log the user out
 app.post('/api/logout', (req, res) => {
   req.session.destroy()
