@@ -218,6 +218,30 @@ app.get('/api/scans', async (req, res, next) => {
   }
 })
 
+//this is for deleting the user profile
+app.delete('/api/me', async (req, res, next) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' })
+  const { password } = req.body
+  
+  if (!password) return res.status(400).json({ error: 'Password is required' })
+
+  try {
+    //get the hashed password from the database
+    const { rows } = await pool.query('SELECT password_hash FROM users WHERE id = $1', [req.session.user.id])
+    
+    //compare the typed password to the hashed one
+    const match = await bcrypt.compare(password, rows[0].password_hash)
+    if (!match) return res.status(401).json({ error: 'Incorrect password' })
+
+    //if it matches, delete the user and destroy the session
+    await pool.query('DELETE FROM users WHERE id = $1', [req.session.user.id])
+    req.session.destroy()
+    res.json({ message: 'Account deleted' })
+  } catch (error) {
+    next(error)
+  }
+})
+
 //destroys the session cookie to log the user out
 app.post('/api/logout', (req, res) => {
   req.session.destroy()
