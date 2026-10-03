@@ -31,7 +31,7 @@ export default function App() {
 
   //haha routes, similar to dart.. i miss dart..
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <div className="min-h-screen bg-bg text-text">
         {/* displays the consent modal for cookies and privacy policy, this is a one time thing per user */}
         <ConsentModal />
