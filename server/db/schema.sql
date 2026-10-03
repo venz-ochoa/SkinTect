@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS scans (
   id                     SERIAL PRIMARY KEY,
+  user_id                INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   photo                  BYTEA       NOT NULL,
   heatmap                TEXT        NOT NULL,
   prediction             TEXT        NOT NULL,
