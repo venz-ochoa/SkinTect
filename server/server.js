@@ -8,6 +8,7 @@ import multer from "multer";
 import fs from "node:fs";
 
 const app = express();
+app.set("trust proxy", 1);
 
 // CORS before the routes. Middleware registered after a route never sees that
 // route's requests, which is the m4 lesson showing up in production.
@@ -75,23 +76,25 @@ function endSession(req, res, message) {
 }
 
 app.set("trust proxy", 1);
-app.use(cors({ origin: allowedOrigins, credentials: true })); // credentials lets the cookie through
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGINS,
+    credentials: true,
+  }),
+);
 app.use(express.json({ limit: "100kb" }));
 
 //this is for saving the current user session in the database
 //lets actions user did like scans they want to save, are saved under the correct user
 app.use(
   session({
-    //if session table doesnt exist
-    store: new PgStore({ pool, createTableIfMissing: true }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
-      maxAge: 1000 * 60 * 60 * 24 * 7,
+      secure: true,
+      sameSite: "none", //allows the cookie to be sent to a different domain
+      maxAge: 1000 * 60 * 60 * 24, //24 hours (optional but good practice)
     },
   }),
 );
