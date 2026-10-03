@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Card from "../components/Card";
 import Button from "../components/Button";
+import defaultProfile from "../images/default_profile.jpg";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -29,6 +30,7 @@ export default function Profile() {
       <Card>
         {user ? (
           <div className="flex flex-col gap-4">
+            <img src={user.profile || defaultProfile} alt="Profile" className="w-16 h-16 rounded-full object-cover" />
             <p>{user.email}</p>
             <Button variant="primary" onClick={logout}>Log out</Button>
           </div>

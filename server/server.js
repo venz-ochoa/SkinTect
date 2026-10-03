@@ -63,14 +63,23 @@ app.get('/readyz', async (request, response) => {
 //first checks if the email is a string, and then checks if its empty, if it is, returns null which is a falsy
 //same goes for the password
 app.post('/api/signup', async (request, response, next) => {
+  const name = typeof request.body.name === 'string' ? request.body.name.trim() : ''
   const email = typeof request.body.email === 'string' ? request.body.email.trim() : ''
   const password = typeof request.body.password === 'string' ? request.body.password : ''
 
   //if the email is empty, ask user to input
+  if (!name) return response.status(400).json({ error: 'name is required' })
+  //name is only letters, no numbers or symbols
+  const nameRegex = /^[a-zA-Z\s]+$/;
+  if (!nameRegex.test(name)) {
+    return response.status(400).json({ error: 'Name must only contain letters' })
+  }
+
   if (!email) return response.status(400).json({ error: 'email is required' })
   //if password is less than 6 characters, ask user to input stronger and longer password
-  if (password.length < 6) {
-    return response.status(400).json({ error: 'password must be at least 6 characters' })
+  const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).+$/;
+  if (!passwordRegex.test(password) || password.length < 6) {
+    return response.status(400).json({ error: 'Password must contain at least one letter, one number, and one symbol' })
   }
 
   //this checks if the email is already registered, each email must be unique
@@ -85,8 +94,8 @@ app.post('/api/signup', async (request, response, next) => {
   //the number 10 means the password is hashed 10 times, which makes it a lot more secure than single hashes
     const password_hash = await bcrypt.hash(password, 10)
     const { rows } = await pool.query(
-      `INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email`,
-      [email, password_hash]
+      `INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, email`,
+      [name, email, password_hash]
     )
     response.status(201).json(rows[0])
   } catch (error) {

@@ -10,6 +10,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState(null); //null | "loading" | "done" | { error }
     
   //defaults to loading
@@ -46,10 +47,17 @@ export default function Login() {
             <FormField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
             <FormField
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-xs text-primary mt-1 hover:underline"
+              >
+                {showPassword ? "Hide password" : "Show password"}
+            </button>
             <Button type="submit" variant="primary" disabled={status === "loading"}>
               {status === "loading" ? "Logging in..." : "Log in"}
             </Button>
