@@ -2,6 +2,7 @@ import { useState } from "react";
 import Button from "../components/Button";
 import Badge from "../components/Badge";
 import SplitBar from "../components/Splitbar";
+import { Link } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -446,10 +447,10 @@ export default function Home() {
               </div>
 
               {saveStatus === "saved" && (
-                <a href="/history" className={`mx-auto flex w-fit items-center gap-2 rounded text-[13px] font-medium text-primary underline-offset-4 hover:underline ${focusRing}`}>
+                <Link to="/history" className={`mx-auto flex w-fit items-center gap-2 rounded text-[13px] font-medium text-primary underline-offset-4 hover:underline ${focusRing}`}>
                   {ic("history", "h-4 w-4")}
                   View it in your scan history
-                </a>
+                </Link>
               )}
 
               {saveStatus === "error" && (

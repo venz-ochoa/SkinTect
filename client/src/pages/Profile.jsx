@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import defaultProfile from "../images/default_profile.jpg";
@@ -28,6 +29,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 //this is for displaying the user profile
 export default function Profile() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
   //this is for editing
@@ -51,7 +53,7 @@ export default function Profile() {
   //when the user logs out, it redirects them back to the signup page
   async function logout() {
     await fetch(`${API_BASE_URL}/api/logout`, { method: "POST", credentials: "include" });
-    window.location = "/signup";
+    navigate("/signup");
   }
 
   //this is for saving the profile changes (name, password, and profile picture)
@@ -100,7 +102,7 @@ export default function Profile() {
       return;
     }
     //if successful, sends them to signup page
-    window.location = "/signup";
+    navigate("/signup");
   }
 
   //claude generated UI
@@ -222,7 +224,7 @@ export default function Profile() {
       sub: "Name, photo and password",
       onClick: () => { setIsEditing(true); setName(user.name); setPassword(""); setPic(null); setIsDeleting(false); setShowPw(false); },
     },
-    { icon: historyIcon, title: "View Scan History", sub: "Every scan you've saved", onClick: () => window.location = "/history" },
+    { icon: historyIcon, title: "View Scan History", sub: "Every scan you've saved", onClick: () => navigate("/history") },
     {
       icon: downloadIcon,
       title: "Download PDF Report",
@@ -240,7 +242,7 @@ export default function Profile() {
           <div className="flex flex-col items-center gap-4 p-4 text-center">
             <p className="text-base">You are not logged in.</p>
             <div className="w-full [&>button]:w-full">
-              <Button variant="primary" onClick={() => window.location = "/login"}>Log in</Button>
+              <Button variant="primary" onClick={() => navigate("/login")}>Log in</Button>
             </div>
           </div>
         </Card>
@@ -511,7 +513,7 @@ export default function Profile() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => (window.location = "/history")}
+                    onClick={() => navigate("/history")}
                     className={`rounded text-[13px] font-medium text-primary underline-offset-4 hover:underline ${focusRing}`}
                   >
                     View all
@@ -555,7 +557,7 @@ export default function Profile() {
               {!activityLoading && !statsFailed && total === 0 && (
                 <div className="flex flex-col gap-3 border-t border-primary/15 pt-5 [&>button]:w-full">
                   <p className="text-base text-text/80">Your results will show up here once you save a scan.</p>
-                  <Button variant="primary" onClick={() => window.location = "/"}>Scan a lesion</Button>
+                  <Button variant="primary" onClick={() => navigate("/")}>Scan a lesion</Button>
                 </div>
               )}
             </div>
