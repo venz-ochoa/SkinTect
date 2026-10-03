@@ -17,11 +17,14 @@ export default function App() {
   const [user, setUser] = useState(undefined);
 
   //this is for checking if the user is logged in or not, and then setting the user state accordingly
-  useEffect(() => {
+  const refreshUser = () =>
     fetch(`${API_BASE_URL}/api/me`, { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then(setUser)
       .catch(() => setUser(null));
+
+    useEffect(() => {
+    refreshUser();
   }, []);
 
   //show a blank screen or loading text for a split second while verifying the session
@@ -37,10 +40,8 @@ export default function App() {
         <ConsentModal />
         <NavBar />
         <Routes>
-          <Route path="/" element={user ? <Home /> : <Navigate to="/signup" />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />          <Route path="/signup" element={<SignUp />} />
+          <Route path="/login" element={<Login onLogin={refreshUser} />} />          <Route path="/profile" element={<Profile />} />
           <Route path="/history" element={<History />} />
         </Routes>
         {/* displays the footer disclaimer, this is a one time thing per user */}

@@ -27,6 +27,7 @@ export default function Login() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Login failed");
+        await onLogin();      
         setStatus("done");
         //when user successfully logs in, it sends them to the home page
         navigate("/");
@@ -34,7 +35,7 @@ export default function Login() {
       setStatus({ error: err.message });
     }
   }
- 
+
   //claude generated front UI
   //claude generated front UI
   //icons come from the svg folder
