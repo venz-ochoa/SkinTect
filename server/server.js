@@ -5,6 +5,7 @@ import { pool } from "./db/pool.js";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import multer from "multer";
+import fs from "node:fs";
 
 const app = express();
 
@@ -540,6 +541,10 @@ app.use((error, request, response, next) => {
 // The host chooses the port and tells you through PORT. Hardcoding 3000 is the
 // commonest reason a first deploy is marked unhealthy and killed.
 const port = process.env.PORT || 3000;
+
+await pool.query(
+  fs.readFileSync(new URL("./schema.sql", import.meta.url), "utf8"),
+);
 
 //adds the theme column the first time the server starts, safe to run again every start
 //existing accounts get light, which is what you want as the default
