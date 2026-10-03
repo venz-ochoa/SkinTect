@@ -17,20 +17,49 @@ export default function Home() {
   const [saveStatus, setSaveStatus] = useState(null);
   const [bodyLocation, setBodyLocation] = useState(""); // tracks the selected body part
 
-  //this function runs when the user selcts a take a photo or upload. only allows for one photo to be selected at a time
-  function pickFile(e) {
-    const picked = e.target.files[0];
-    //if didnt pick anything, return nothing
-    if (!picked) return;
-    //set file = what the user chose,
-    setFile(picked);
-    //set preview = a url to the image for displaying purposes,
-    setPreview(URL.createObjectURL(picked));
-    //and set result = stores the json sent by the model from Google Cloud
-    setResult(null);
-    setSaveStatus(null); // resets the save button for new photos
-    setBodyLocation(""); // resets the body location dropdown
+  //shrinks big phone photos to a max of 1600px and converts them to JPEG before upload
+  function shrinkImage(file, maxSide = 1600) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(url);
+            const name = file.name.replace(/\.\w+$/, "") + ".jpg";
+            resolve(blob ? new File([blob], name, { type: "image/jpeg" }) : file);
+          },
+          "image/jpeg",
+          0.85,
+        );
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(file);
+      };
+      img.src = url;
+    });
   }
+
+  //this function runs when the user selcts a take a photo or upload. only allows for one photo to be selected at a time
+  async function pickFile(e) {
+  const picked = e.target.files[0];
+  //if didnt pick anything, return nothing
+  if (!picked) return;
+  const small = await shrinkImage(picked);
+  //set file = what the user chose,
+  setFile(small);
+  setPreview(URL.createObjectURL(small));
+  //and set result = stores the json sent by the model from Google Cloud
+  setResult(null);
+  setSaveStatus(null); //resets the save button for new photos
+  setBodyLocation(""); // esets the body location dropdown
+}
 
   //this function runs when the user taps on the analyze button
   //sends the image to the server, waits for json result, then sets the result state to the json result
@@ -78,10 +107,14 @@ export default function Home() {
         body,
       });
 
-      if (!res.ok) throw new Error("Failed to save");
-      setSaveStatus("saved");
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.error || "Failed to save");
+    }      
+    setSaveStatus("saved");
     } catch (error) {
       setSaveStatus("error");
+      setSaveMessage(error.message);
     }
   }
 
