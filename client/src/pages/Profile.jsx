@@ -81,6 +81,7 @@ export default function Profile() {
                 <p className="font-bold">{user.name}</p>
                 <p>{user.email}</p>
                 <Button variant="primary" onClick={() => { setIsEditing(true); setName(user.name); setPassword(""); setPic(null); }}>Edit Profile</Button>
+                <Button onClick={() => window.location = "/history"}>View Scan History</Button>
                 <Button onClick={logout}>Log out</Button>
               </>
             )}

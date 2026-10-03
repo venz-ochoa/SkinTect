@@ -4,6 +4,7 @@ import Button from "../components/Button";
 import Badge from "../components/Badge";
 
 const API_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // added this so the backend fetch works
 
 export default function Home() {
   //state variables for the file, preview, result, and loading state
@@ -13,6 +14,7 @@ export default function Home() {
   //aeshetic purposes...
   const [loading, setLoading] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null);
 
   //this function runs when the user selcts a take a photo or upload. only allows for one photo to be selected at a time
   function pickFile(e) {
@@ -25,6 +27,7 @@ export default function Home() {
     setPreview(URL.createObjectURL(picked));
     //and set result = stores the json sent by the model from Google Cloud
     setResult(null);
+    setSaveStatus(null); // resets the save button for new photos
   }
 
   //this function runs when the user taps on the analyze button
@@ -55,6 +58,30 @@ export default function Home() {
     setLoading(false);
   }
 
+  //this is for sending the scan data to the backend
+  async function handleSaveScan() {
+    setSaveStatus("saving");
+    
+    const body = new FormData();
+    body.append("photo", file); 
+    body.append("heatmap", result.heatmap || ""); 
+    body.append("prediction", result.prediction);
+    body.append("malignant_probability", result.probabilities.malignant); 
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/scans`, {
+        method: "POST",
+        credentials: "include",
+        body,
+      });
+
+      if (!res.ok) throw new Error("Failed to save");
+      setSaveStatus("saved");
+    } catch (error) {
+      setSaveStatus("error");
+    }
+  }
+
   //claude generated UI
   return (
     <main className="max-w-md mx-auto p-4 flex flex-col gap-6">
@@ -78,6 +105,17 @@ export default function Home() {
           <Badge label={result.prediction} confidence={result.probabilities[result.prediction]} />
           <p className="mt-2">Benign: {(result.probabilities.benign * 100).toFixed(1)}%</p>
           <p>Malignant: {(result.probabilities.malignant * 100).toFixed(1)}%</p>
+          
+          <div className="mt-4 flex flex-col">
+            {saveStatus === "saved" ? (
+              <p className="text-primary font-bold text-center mt-2">Scan saved successfully!</p>
+            ) : (
+              <Button variant="primary" onClick={handleSaveScan} disabled={saveStatus === "saving"}>
+                {saveStatus === "saving" ? "Saving..." : "Save Scan"}
+              </Button>
+            )}
+            {saveStatus === "error" && <p className="text-malignant text-center mt-2">Failed to save scan.</p>}
+          </div>
         </Card>
       )}
 
