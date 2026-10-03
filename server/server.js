@@ -30,7 +30,10 @@ const PgStore = connectPgSimple(session);
 const isProd = process.env.NODE_ENV === "production";
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    fieldSize: 10 * 1024 * 1024,
+  },
 });
 
 //reads the login token from the Authorization header instead of a cookie
@@ -557,6 +560,9 @@ app.use((request, response) => {
 // The detail goes in your logs; the visitor gets a plain message. Sending a
 // stack trace to a stranger tells them about your file layout and dependencies.
 app.use((error, request, response, next) => {
+  if (error.name === "MulterError") {
+    return response.status(400).json({ error: error.message });
+  }
   console.error(error);
   response.status(500).json({ error: "Something went wrong on the server" });
 });
