@@ -4,7 +4,6 @@ import Badge from "../components/Badge";
 import SplitBar from "../components/Splitbar";
 import { Link } from "react-router-dom";
 
-const API_URL = import.meta.env.VITE_API_URL;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Home() {
@@ -47,8 +46,7 @@ export default function Home() {
       //append the image to the form data object
       body.append("image", file);
       //send the form data to the server, wait for the response, and parse it as json
-      const res = await fetch(API_URL, { method: "POST", body });
-      //turn it into json, throw an error if response is invalid or theres an error
+      const res = await fetch(`${API_BASE_URL}/api/predict`, { method: "POST", body });      //turn it into json, throw an error if response is invalid or theres an error
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Request failed");
       //set the result state to the json data returned by the server
