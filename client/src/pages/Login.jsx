@@ -36,9 +36,7 @@ export default function Login({onLogin}) {
       setStatus({ error: err.message });
     }
   }
-
-  //claude generated front UI
-  //claude generated front UI
+  
   //icons come from the svg folder
   const icon = (name) => new URL(`../images/svg/${name}.svg`, import.meta.url).href;
   const focusRing =

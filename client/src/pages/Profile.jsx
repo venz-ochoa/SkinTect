@@ -109,7 +109,6 @@ export default function Profile() {
     navigate("/signup");
   }
 
-  //claude generated UI
 
   //activity: pulls the user's scan counts from the stats route
   const [stats, setStats] = useState(null);
