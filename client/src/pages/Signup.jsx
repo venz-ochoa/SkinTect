@@ -8,8 +8,10 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 //this is for sign up
 export default function SignUp() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState(null); // null | "loading" | "done" | { error }
 
   async function handleSubmit(e) {
@@ -23,13 +25,13 @@ export default function SignUp() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, password }),
     });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Sign up failed");
       setStatus("done");
-      //when user successfully signs up, it sends them to the home page
-      window.location = "/";
+      //when user successfully signs up, it sends them to the login page
+      window.location = "/login";
     } catch (err) {
       setStatus({ error: err.message });
     }
@@ -45,13 +47,21 @@ export default function SignUp() {
           <p>Account created. You can log in now.</p>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <FormField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
             <FormField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
             <FormField
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-xs text-primary mt-1 hover:underline"
+            >
+              {showPassword ? "Hide password" : "Show password"}
+            </button>
             <Button type="submit" variant="primary" disabled={status === "loading"}>
               {status === "loading" ? "Signing up..." : "Sign up"}
             </Button>
