@@ -9,16 +9,13 @@ import fs from "node:fs";
 
 const app = express();
 
-// 1. Trust proxy MUST be at the very top of the app
 app.set("trust proxy", 1);
 
-// 2. Clean up the URL to prevent trailing slash CORS errors
 const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173")
   .split(",")
   .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
-// 3. Actually use the cleaned 'allowedOrigins' array here
 app.use(
   cors({
     origin: allowedOrigins,
@@ -35,10 +32,9 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// 4. Attach the database store so Render doesn't instantly wipe sessions
 app.use(
   session({
-    store: new PgStore({ pool }), // <--- THIS WAS MISSING
+    store: new PgStore({ pool, createTableIfMissing: true }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
