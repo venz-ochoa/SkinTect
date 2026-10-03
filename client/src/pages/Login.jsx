@@ -6,7 +6,7 @@ import Button from "../components/Button";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 //this is for the user login page
-export default function Login() {
+export default function Login({onLogin}) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +27,8 @@ export default function Login() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Login failed");
+        localStorage.setItem("token", data.token);
+        await onLogin();    
         setStatus("done");
         //when user successfully logs in, it sends them to the home page
         navigate("/");
@@ -34,7 +36,7 @@ export default function Login() {
       setStatus({ error: err.message });
     }
   }
- 
+
   //claude generated front UI
   //claude generated front UI
   //icons come from the svg folder

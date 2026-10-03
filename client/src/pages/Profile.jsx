@@ -101,6 +101,10 @@ export default function Profile() {
       alert("Deletion failed: " + (errData.error || "Unknown error"));
       return;
     }
+    
+    onLogout();
+    navigate("/signup");
+
     //if successful, sends them to signup page
     navigate("/signup");
   }

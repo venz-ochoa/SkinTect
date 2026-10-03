@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "connect-pg-simple": "^10.0.0",
     "express-session": "^1.19.0",
+    "jsonwebtoken": "^9.0.3",
     "multer": "^2.4.0"
   }
 }
