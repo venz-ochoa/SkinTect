@@ -28,7 +28,7 @@ import { generateReport } from "../lib/report";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 //this is for displaying the user profile
-export default function Profile() {
+export default function Profile({ onLogout }) {
   const navigate = useNavigate();
   const [user, setUser] = useState(undefined);
 
@@ -53,6 +53,8 @@ export default function Profile() {
   //when the user logs out, it redirects them back to the signup page
   async function logout() {
     await fetch(`${API_BASE_URL}/api/logout`, { method: "POST", credentials: "include" });
+    //the login is a token in localStorage, so it has to be cleared here too or the user stays logged in
+    onLogout();
     navigate("/signup");
   }
 
@@ -102,10 +104,8 @@ export default function Profile() {
       return;
     }
     
+    //if successful, clears the token and sends them to the signup page
     onLogout();
-    navigate("/signup");
-
-    //if successful, sends them to signup page
     navigate("/signup");
   }
 
