@@ -77,7 +77,7 @@ export default function Splash({ children }) {
     if (phase === "show") setPhase("leaving");
   }
 
-  //feeds the pointer position to css so the glow, tilt and parallax layers follow it
+  //feeds the pointer position to css so the tilt and parallax layers follow it
   function move(e) {
     const el = root.current;
     if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -86,8 +86,6 @@ export default function Splash({ children }) {
     const y = e.clientY - r.top;
     el.style.setProperty("--mx", ((x / r.width) * 2 - 1).toFixed(3));
     el.style.setProperty("--my", ((y / r.height) * 2 - 1).toFixed(3));
-    el.style.setProperty("--px", `${x}px`);
-    el.style.setProperty("--py", `${y}px`);
   }
 
   //every tap drops a ripple, a ring of sparks, and dismisses the splash
@@ -112,7 +110,7 @@ export default function Splash({ children }) {
           onPointerMove={move}
           onPointerDown={burst}
           className={`fixed inset-0 z-40 select-none overflow-hidden bg-bg px-6 text-text ${phase === "leaving" ? "st-sp-out pointer-events-none" : ""}`}
-          style={{ "--fade": `${FADE}ms`, "--mx": 0, "--my": 0, "--px": "50%", "--py": "50%", touchAction: "manipulation" }}
+          style={{ "--fade": `${FADE}ms`, "--mx": 0, "--my": 0, touchAction: "manipulation" }}
         >
           {/*splash animations, every class is switched off for reduced motion*/}
           <style>{`
@@ -137,7 +135,6 @@ export default function Splash({ children }) {
             /*layers that slide a little with the pointer, --z is how far*/
             .st-sp-par { transform: translate3d(calc(var(--mx) * var(--z) * 1px), calc(var(--my) * var(--z) * 1px), 0); transition: transform .3s ease-out; }
             .st-sp-tilt { transform: rotateY(calc(var(--mx) * 16deg)) rotateX(calc(var(--my) * -16deg)); transition: transform .3s ease-out; }
-            .st-sp-glow { left: var(--px); top: var(--py); transform: translate(-50%, -50%); transition: left .4s ease-out, top .4s ease-out; }
 
             .st-sp-ring { stroke-dasharray: var(--len); animation: st-sp-ring 1.4s cubic-bezier(.2, .7, .2, 1) backwards; animation-delay: var(--d, 0ms); }
             .st-sp-svg { transform-box: fill-box; transform-origin: center; }
@@ -176,9 +173,6 @@ export default function Splash({ children }) {
               <div className={`st-sp-drift absolute rounded-full blur-3xl ${cls}`} style={{ animationDelay: `-${d}s` }} />
             </div>
           ))}
-
-          {/*glow that chases the pointer*/}
-          <div aria-hidden="true" className="st-sp-glow pointer-events-none absolute h-72 w-72 rounded-full bg-accent/30 blur-3xl" />
 
           {/*floating leaves, dots and rings, hover one to boop it*/}
           {BITS.map((b, i) => (
