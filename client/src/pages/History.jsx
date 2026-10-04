@@ -15,6 +15,10 @@ export default function History() {
   const [expanded, setExpanded] = useState(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [loading, setLoading] = useState(true);
+  //the id of the scan waiting for delete confirmation, whether a delete is running, and the small message at the bottom
+  const [confirmId, setConfirmId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [toast, setToast] = useState("");
 
   //this is where we get the user's history from the backend
   useEffect(() => {
@@ -24,6 +28,25 @@ export default function History() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  //deletes a scan, lets the exit animation play, then jumps to the neighbouring scan (or closes the window)
+  async function deleteScan(scan, next) {
+    setDeleting(true);
+    let message = "Scan deleted";
+    try {
+      const r = await fetch(`${API_BASE_URL}/api/scans/${scan.id}`, { method: "DELETE", credentials: "include" });
+      if (!r.ok) throw new Error();
+      await new Promise((done) => setTimeout(done, 450));
+      setScans((s) => s.filter((x) => x.id !== scan.id));
+      setExpanded(next ? next.id : null);
+    } catch {
+      message = "Could not delete this scan";
+    }
+    setDeleting(false);
+    setConfirmId(null);
+    setToast(message);
+    setTimeout(() => setToast(""), 2500);
+  }
 
   //claude generated UI
   const serif = { fontFamily: "Georgia, 'Times New Roman', serif" };
@@ -48,6 +71,7 @@ export default function History() {
   function openScan(id) {
     setExpanded(id);
     setShowHeatmap(false);
+    setConfirmId(null);
   }
 
   return (
@@ -63,6 +87,7 @@ export default function History() {
         @keyframes st-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
         @keyframes st-ring { from { stroke-dashoffset: var(--len); } to { stroke-dashoffset: var(--to); } }
         @keyframes st-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+        @keyframes st-away { to { opacity: 0; transform: scale(.88) rotate(-3deg) translateY(24px); filter: blur(6px); } }
         @property --st-n { syntax: "<integer>"; inherits: false; initial-value: 0; }
         @keyframes st-count { from { --st-n: 0; } to { --st-n: var(--to); } }
         .st-rise { animation: st-rise .55s cubic-bezier(.2, .7, .2, 1) backwards; animation-delay: var(--d, 0ms); }
@@ -70,6 +95,7 @@ export default function History() {
         .st-fade { animation: st-fade .45s ease-out backwards; animation-delay: var(--d, 0ms); }
         .st-dialog { animation: st-sheet .45s cubic-bezier(.2, .7, .2, 1) backwards; }
         @media (min-width: 640px) { .st-dialog { animation-name: st-pop; } }
+        .st-away { animation: st-away .45s cubic-bezier(.5, 0, .75, 0) forwards; }
         .st-float { animation: st-float 4s ease-in-out infinite; }
         .st-grow { transform-origin: left; animation: st-grow .9s cubic-bezier(.2, .7, .2, 1) .3s backwards; }
         .st-ring { animation: st-ring 1.1s cubic-bezier(.2, .7, .2, 1) .25s backwards; }
@@ -77,7 +103,7 @@ export default function History() {
         .st-count { --st-n: var(--to); animation: st-count 1.1s cubic-bezier(.2, .7, .2, 1) .3s backwards; counter-reset: st-n var(--st-n); }
         .st-count::after { content: counter(st-n); }
         main button:not(:disabled):active { transform: scale(.97); }
-        @media (prefers-reduced-motion: reduce) { .st-rise, .st-pop, .st-fade, .st-dialog, .st-float, .st-grow, .st-ring, .st-alert, .st-count { animation: none; } }
+        @media (prefers-reduced-motion: reduce) { .st-rise, .st-pop, .st-fade, .st-dialog, .st-away, .st-float, .st-grow, .st-ring, .st-alert, .st-count { animation: none; } }
       `}</style>
       {/* title row */}
       <div className="st-rise flex flex-wrap items-end justify-between gap-4">
@@ -190,7 +216,7 @@ export default function History() {
                   aria-modal="true"
                   aria-label="Scan details"
                   onClick={(e) => e.stopPropagation()}
-                  className="st-dialog grid max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-t-3xl bg-bg shadow-2xl sm:rounded-3xl md:grid-cols-2"
+                  className={`${deleting ? "st-away" : "st-dialog"} grid max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-t-3xl bg-bg shadow-2xl sm:rounded-3xl md:grid-cols-2`}
                 >
                   {/* photo or heatmap */}
                   <div className="relative bg-surface">
@@ -249,6 +275,36 @@ export default function History() {
                         <Button variant="secondary" disabled={!newer} onClick={() => openScan(newer.id)}>Next scan</Button>
                         <Button variant="secondary" disabled={!older} onClick={() => openScan(older.id)}>Previous scan</Button>
                       </div>
+                      {confirmId === selected.id ? (
+                        <div className="st-alert flex flex-col gap-3 rounded-xl border border-malignant/40 bg-malignant/10 p-4">
+                          <div>
+                            <p className="text-base font-semibold">Delete this scan?</p>
+                            <p className="mt-1 text-[13px] text-text/70">The photo and heatmap will be gone for good.</p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <Button variant="secondary" disabled={deleting} onClick={() => setConfirmId(null)}>Keep it</Button>
+                            <button
+                              type="button"
+                              disabled={deleting}
+                              onClick={() => deleteScan(selected, newer || older)}
+                              className={`rounded-full bg-malignant px-4 py-2 text-base font-medium text-bg transition-opacity disabled:opacity-60 ${focusRing}`}
+                            >
+                              {deleting ? "Deleting..." : "Yes, delete"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmId(selected.id)}
+                          className={`group flex items-center justify-center gap-2 rounded-full border border-malignant/40 px-4 py-2 text-base font-medium text-malignant transition-colors hover:bg-malignant hover:text-bg ${focusRing}`}
+                        >
+                          <svg className="transition-transform duration-200 group-hover:-rotate-12 group-hover:scale-110" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5" />
+                          </svg>
+                          Delete scan
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -259,6 +315,12 @@ export default function History() {
       )}
 
       <p className="st-fade text-center text-[13px] text-text/70" style={{ "--d": "300ms" }}>This is a screening aid, not a medical diagnosis.</p>
+
+      {toast && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[60] flex justify-center">
+          <p role="status" className="st-pop rounded-full bg-text px-5 py-2 text-[13px] font-medium text-bg shadow-lg">{toast}</p>
+        </div>
+      )}
     </main>
   );
 }
