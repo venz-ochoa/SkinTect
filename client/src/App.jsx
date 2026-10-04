@@ -8,6 +8,8 @@ import SignUp from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import History from "./pages/History";
+import Splash from "./components/Splash";
+import Ambient from "./components/Ambient";
 import "./lib/authFetch";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -36,13 +38,14 @@ export default function App() {
   //haha routes, similar to dart.. i miss dart..
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <div className="min-h-screen bg-bg text-text">
+      <div className="relative min-h-screen text-text">
+        <Ambient />
         {/* displays the consent modal for cookies and privacy policy, this is a one time thing per user */}
         <ConsentModal />
         <NavBar user={user} />        
         <Routes>
-          <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />          
-          <Route path="/signup" element={<SignUp />} />
+          <Route path="/" element={user ? <Home /> : <Navigate to="/signup" />} />          
+          <Route path="/signup" element={<Splash><SignUp /></Splash>} />          
           <Route path="/login" element={<Login onLogin={refreshUser} />} />          
           <Route path="/profile" element={<Profile onLogout={() => { localStorage.removeItem("token"); setUser(null); }} />} />          <Route path="/history" element={<History />} />
           </Routes>

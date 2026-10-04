@@ -25,7 +25,7 @@ export default function NavBar({ user }) {
     const focusRing =
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2";
   return (
-    <header className="st-drop border-b border-text/20 bg-bg">
+    <header className="st-drop sticky top-0 z-30 border-b border-text/20 bg-bg">
       {/*nav animations, switched off for reduced motion*/}
       <style>{`
         @keyframes st-drop { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
@@ -39,7 +39,7 @@ export default function NavBar({ user }) {
       <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-y-2 px-4 py-4 md:px-6">
         <Link
           to="/"
-          className={`rounded text-2xl font-bold tracking-tight text-text ${focusRing}`}
+          className={`rounded text-2xl font-bold tracking-tight text-text transition-transform duration-300 ease-[cubic-bezier(.34,1.7,.5,1)] hover:scale-105 active:scale-95 ${focusRing}`}
           style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
         >
           SkinTect
@@ -70,7 +70,7 @@ export default function NavBar({ user }) {
               end
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                `rounded-lg px-3 py-2 text-base transition-colors ${focusRing} ${
+                `rounded-lg px-3 py-2 text-base transition-[transform,background-color] duration-300 ease-[cubic-bezier(.34,1.7,.5,1)] hover:-translate-y-px active:scale-95 ${focusRing} ${
                   isActive
                     ? "bg-bg font-semibold text-text shadow-sm ring-1 ring-text/20"
                     : "text-text/80 hover:bg-bg/70 hover:text-text"

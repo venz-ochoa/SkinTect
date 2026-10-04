@@ -63,7 +63,7 @@ export function ResultDisclaimer({ result }) {
 //small line for the bottom of every page
 export function FooterDisclaimer() {
   return (
-    <p className="mx-auto max-w-2xl px-4 py-6 text-center text-[13px] text-text/60">
+    <p className="mx-auto my-6 max-w-2xl rounded-2xl bg-bg px-4 py-4 text-center text-[13px] text-text/60">
       This app is not a medical diagnosis. If you are worried about a spot on your skin, see a doctor.
     </p>
   );

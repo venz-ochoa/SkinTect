@@ -3,6 +3,7 @@ import Button from "../components/Button";
 import Badge from "../components/Badge";
 import SplitBar from "../components/Splitbar";
 import { Link } from "react-router-dom";
+import Tilt from "../components/Tilt";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -171,7 +172,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-bg text-text">
+    <div className="min-h-screen text-text">
       {/*scan line animation only plays while analyzing and is off for reduced motion*/}
       <style>{`
         /*shared motion, every class is switched off for reduced motion*/
@@ -241,7 +242,7 @@ export default function Home() {
               delete e.currentTarget.dataset.drag;
               pickFile({ target: { files: e.dataTransfer.files } });
             }}
-            className={`group relative flex w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed border-accent bg-surface text-center transition-all hover:border-primary hover:bg-accent/15 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 data-[drag=true]:scale-[1.01] data-[drag=true]:border-primary data-[drag=true]:bg-accent/25 ${
+            className={`group relative flex w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed border-accent bg-surface text-center transition-all hover:border-primary hover:bg-accent/15 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 data-[drag=true]:scale-[1.02] data-[drag=true]:border-primary data-[drag=true]:bg-accent/25 ${
               preview ? "p-3" : "min-h-[300px] p-6"
             }`}
           >
@@ -306,13 +307,13 @@ export default function Home() {
           {!preview && (
             <ul className="grid gap-3 sm:grid-cols-3">
               {tips.map((tip, i) => (
-                <li key={tip.title} style={{ "--d": `${160 + i * 70}ms` }} className="st-rise flex items-start gap-3 rounded-2xl bg-surface p-4">
+                <li key={tip.title} style={{ "--d": `${160 + i * 70}ms` }} className="st-rise"><Tilt className="flex h-full items-start gap-3 rounded-2xl bg-surface p-4">
                   {ic(tip.icon, "mt-0.5 h-5 w-5 shrink-0")}
                   <div className="flex flex-col">
                     <span className="text-base font-semibold">{tip.title}</span>
                     <span className="text-[13px] text-text/65">{tip.text}</span>
                   </div>
-                </li>
+                </Tilt></li>
               ))}
             </ul>
           )}

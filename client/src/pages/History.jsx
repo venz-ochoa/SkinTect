@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "../components/Card";
+import Tilt from "../components/Tilt";
 import Button from "../components/Button";
 import Badge from "../components/Badge";
 import SplitBar from "../components/Splitbar";
@@ -165,6 +166,7 @@ export default function History() {
 
               return (
                 <li key={scan.id} className="st-rise" style={{ "--d": `${Math.min(i, 12) * 45}ms` }}>
+                  <Tilt>
                   <button
                     type="button"
                     onClick={() => openScan(scan.id)}
@@ -192,6 +194,7 @@ export default function History() {
                       </span>
                     </span>
                   </button>
+                  </Tilt>
                 </li>
               );
             })}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "../components/Card";
+import Tilt from "../components/Tilt";
 import Button from "../components/Button";
 import defaultProfile from "../images/default_profile.jpg";
 import FormField from "../components/Formfield";
@@ -41,6 +42,8 @@ export default function Profile({ onLogout }) {
   //this is for deleting
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   //this is where we get user data and then have it displayed on their profile
   useEffect(() => {
@@ -91,22 +94,29 @@ export default function Profile({ onLogout }) {
 
   //this is for deleting the account
   async function deleteAccount() {
-    const res = await fetch(`${API_BASE_URL}/api/me`, {
-      method: "DELETE", 
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: deletePassword })
-    });
-    
-    if (!res.ok) {
-      const errData = await res.json();
-      alert("Deletion failed: " + (errData.error || "Unknown error"));
-      return;
+    if (deleting) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/me`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Deletion failed (${res.status})`);
+      }
+      //the account is gone, so the token has to go too. done here as well as in onLogout so it never depends on the prop
+      localStorage.removeItem("token");
+      onLogout?.();
+      navigate("/signup", { replace: true });
+    } catch (err) {
+      //shown on the page instead of an alert, and it also covers network errors that used to fail silently
+      setDeleteError(err.message || "Could not delete the account");
+      setDeleting(false);
     }
-    
-    //if successful, clears the token and sends them to the signup page
-    onLogout();
-    navigate("/signup");
   }
 
 
@@ -315,9 +325,9 @@ if (user === null) {
                   <input type="file" accept="image/*" onChange={(e) => setPic(e.target.files[0])} className="sr-only" />
                 </label>
               ) : (
-                <div className="st-pop rounded-full bg-surface p-1.5 shadow-lg">
+                <Tilt max={8} className="st-pop rounded-full bg-surface p-1.5 shadow-lg">
                   <img src={avatarSrc} alt="Your profile photo" className={avatar} />
-                </div>
+                </Tilt>
               )}
 
               {isEditing ? (
@@ -388,12 +398,14 @@ if (user === null) {
                   <FormField label="Confirm Password" type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} />
                 </div>
                 <div className={stack}>
+                  {deleteError && <p role="alert" className="text-[13px] text-malignant">{deleteError}</p>}
                   <button
                     type="button"
                     onClick={deleteAccount}
+                    disabled={deleting || !deletePassword}
                     className={`w-full rounded-md bg-malignant px-4 py-2 font-semibold text-white transition-opacity hover:opacity-90 ${focusRing}`}
                   >
-                    Delete account
+                    {deleting ? "Deleting..." : "Delete account"}
                   </button>
                   <Button variant="secondary" onClick={() => { setIsDeleting(false); setDeletePassword(""); }}>Cancel</Button>
                 </div>
@@ -459,7 +471,7 @@ if (user === null) {
               {/* stat tiles */}
               <div className="grid grid-cols-3 gap-3">
                 {tiles.map((t, i) => (
-                  <div key={t.label} style={{ "--d": `${200 + i * 80}ms` }} className="st-pop flex flex-col gap-3 rounded-2xl bg-bg p-4">
+                  <Tilt key={t.label} style={{ "--d": `${200 + i * 80}ms` }} className="st-pop flex flex-col gap-3 rounded-2xl bg-bg p-4">
                     <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${t.chip}`}>{ic(t.icon, 18)}</span>
                     <div>
                       <p className={`text-3xl font-bold ${t.tone}`} style={serif}>
@@ -474,7 +486,7 @@ if (user === null) {
                       </p>
                       <p className="mt-1 text-[13px] text-text/70">{t.label}</p>
                     </div>
-                  </div>
+                  </Tilt>
                 ))}
               </div>
 
@@ -575,7 +587,6 @@ if (user === null) {
           </Card>
         </section>
       </div>
-
       <FooterDisclaimer />
     </main>
   );

@@ -43,7 +43,7 @@ export default function SignUp() {
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-bg px-4 py-8 text-text md:px-6">
+    <div className="flex min-h-screen items-center justify-center px-4 py-8 text-text md:px-6">
       {/*page animations*/}
       <style>{`
         /*shared motion, every class is switched off for reduced motion*/
@@ -71,7 +71,7 @@ export default function SignUp() {
         main button:not(:disabled):active { transform: scale(.97); }
         @media (prefers-reduced-motion: reduce) { .st-rise, .st-pop, .st-fade, .st-dialog, .st-float, .st-grow, .st-ring, .st-alert, .st-count { animation: none; } }
       `}</style>
-      <main className="st-pop w-full max-w-md overflow-hidden rounded-3xl border border-primary/15 shadow-sm">
+      <main className="st-pop w-full max-w-md overflow-hidden rounded-3xl border border-primary/15 bg-bg shadow-xl">
         {/*banner art*/}
         <img src={icon("profile-banner")} alt="" className="st-fade h-32 w-full object-cover" style={{ "--d": "150ms" }} />
 
