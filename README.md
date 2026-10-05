@@ -5,9 +5,9 @@ The platform includes a private dashboard where users can save their scans, reco
 
 **Medical Disclaimer:** SkinTect is for educational and early screening purposes only. It is not a medical tool. Always see a doctor or dermatologist for a real diagnosis if you are worried about a spot on your skin.
 
-* **Live Site:** [https://venz-ochoa.github.io/SkinTect/]
-* **API Health Check:** [https://skintect.onrender.com/healthz]
-* **Demo Video:** [To be added]
+* **Live Site:** [Skintect](https://venz-ochoa.github.io/SkinTect/)
+* **API Health Check:** [Healthz](https://skintect.onrender.com/healthz)
+* **Demo Video:** [Demo](SkinTect Demo.mp4)
 
 ## Features
 * **Predictive Analysis:** Uses an AI model (EfficientNet-B4) to check if an image is benign or malignant and highlights the important areas with a heatmap.
@@ -21,13 +21,10 @@ The app is broken into a few separate pieces that talk to each other:
 * **Frontend Client:** React and Vite
 * **Backend API:** Node.js and Express
 * **Relational Database:** PostgreSQL
-* **Inference Engine:** Python, Flask, and PyTorch
+* **Inference Engine:** Python, Flask, PyTorch, and Google Cloud (VM)
 
-## How it fits together 
+## How it fits together
 The React website only talks to the Express API. The Node.js backend handles logins, saves data in PostgreSQL, and sends the photos to the Python server for AI analysis. Because the frontend and backend are hosted on different websites (`github.io` and `onrender.com`), the app uses a special token in the headers to keep users logged in, rather than standard web cookies.
-
-## Run it Locally
-Prerequisites: Node.js (v20 or higher), Python (v3.x), and a working PostgreSQL database.
 Application Programming Interface (API) Setup
 
 ```bash
