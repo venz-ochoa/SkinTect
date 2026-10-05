@@ -7,6 +7,17 @@ import Tilt from "../components/Tilt";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+//a spot counts as malignant once the model gives it at least this much.
+//for a screening aid it is safer to flag too much than too little, so this sits at 0.5, not higher
+const MALIGNANT_THRESHOLD = 0.5;
+
+//the label is decided here from the probabilities, so the verdict, the ring, the badge and the saved scan always agree
+function withLabel(data) {
+  const m = data?.probabilities?.malignant;
+  if (typeof m !== "number") return data;
+  return { ...data, prediction: m >= MALIGNANT_THRESHOLD ? "malignant" : "benign" };
+}
+
 export default function Home() {
   //state variables for the file, preview, result, and loading state
   const [file, setFile] = useState(null);
@@ -80,7 +91,7 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Request failed");
       //set the result state to the json data returned by the server
-      setResult(data);
+      setResult(withLabel(data));
       //just general error handling, catches stuff
     } catch (err) {
       setResult({ error: err.message });
@@ -115,7 +126,6 @@ export default function Home() {
     setSaveStatus("saved");
     } catch (error) {
       setSaveStatus("error");
-      setSaveMessage(error.message);
     }
   }
 

@@ -1,76 +1,79 @@
-# SkinTect
+# SkinTect: An ML-Assisted Skin Lesion Analysis Platform
+SkinTect is a web app that helps users catch and track skin lesions early. It uses AI to analyze uploaded photos of skin spots and estimates whether they are benign or malignant. It also provides a visual heatmap to show exactly which parts of the image the AI focused on.
 
-A web app for checking skin lesions. Upload a photo, get a benign or malignant result with a confidence score and heatmap, and save your scans to track changes over time.
+The platform includes a private dashboard where users can save their scans, record where the spot is on their body, view charts of their history, and create PDF reports to show their doctor.
 
-**Live site:** https://venz-ochoa.github.io/SkinTect/
-**API:** https://YOUR-API.onrender.com/healthz
-**Demo video:** [to add]
+**Medical Disclaimer:** SkinTect is for educational and early screening purposes only. It is not a medical tool. Always see a doctor or dermatologist for a real diagnosis if you are worried about a spot on your skin.
 
-> SkinTect is a screening aid, not a medical diagnosis. See a doctor about any spot you are worried about.
-
-![Screenshot](docs/assets/screenshot.png) [to add]
+* **Live Site:** [https://venz-ochoa.github.io/SkinTect/]
+* **API Health Check:** [https://skintect.onrender.com/healthz]
+* **Demo Video:** [To be added]
 
 ## Features
+* **Predictive Analysis:** Uses an AI model (EfficientNet-B4) to check if an image is benign or malignant and highlights the important areas with a heatmap.
+* **Longitudinal Tracking:** Lets users save their past scans, record the body location, and watch for visual changes over time.
+* **Clinical Reporting:** Creates PDF reports and charts from the user's data so they can easily share them with a doctor.
+* **Secure Authentication:** Keeps accounts and patient data safe with secure logins.
+* **Responsive Interface:** Works smoothly on both phones and computers, and includes light and dark modes.
 
-- Sign up and log in
-- Upload a lesion photo and get a result with a heatmap
-- Save scans with a body location and browse them in your history
-- Profile stats, trends chart, and a PDF report to bring to a doctor
-- Edit your profile, switch light/dark theme, delete your account
+## Built With
+The app is broken into a few separate pieces that talk to each other:
+* **Frontend Client:** React and Vite
+* **Backend API:** Node.js and Express
+* **Relational Database:** PostgreSQL
+* **Inference Engine:** Python, Flask, and PyTorch
 
-## Built with
+## How it fits together 
+The React website only talks to the Express API. The Node.js backend handles logins, saves data in PostgreSQL, and sends the photos to the Python server for AI analysis. Because the frontend and backend are hosted on different websites (`github.io` and `onrender.com`), the app uses a special token in the headers to keep users logged in, rather than standard web cookies.
 
-React + Vite (GitHub Pages), Express (Render), PostgreSQL (Render), and a separate model server for predictions.
+## Run it Locally
+Prerequisites: Node.js (v20 or higher), Python (v3.x), and a working PostgreSQL database.
+Application Programming Interface (API) Setup
 
-## How it fits together
+```bash
+cd server
+npm install
+cp .env.example .env     # Fill in the variables using the table below
+npm run dev              # Starts the server at http://localhost:3000
 
-The browser talks only to the Express API. The API saves data in PostgreSQL and forwards photos to the model server. Login uses a token sent in the `Authorization` header, because browsers block cookies between `github.io` and `onrender.com`.
+# Client (new terminal)
+cd client
+npm install
+cp .env.example .env     # Set VITE_API_BASE_URL=http://localhost:3000
+npm run dev              # Starts the website at http://localhost:5173
 
-## Run it locally
+```
+*(Note: The Python AI server also needs to be running on your computer if you want to test the image predictions locally.)*
 
-You need Node.js 20+ and a PostgreSQL database.
-
-    # API
-    cd server
-    npm install
-    cp .env.example .env     # fill in the values below
-    npm run dev              # http://localhost:3000
-
-    # Client (new terminal)
-    cd client
-    npm install
-    cp .env.example .env     # set VITE_API_BASE_URL=http://localhost:3000
-    npm run dev              # http://localhost:5173
-
-## Environment variables
-
-| Name | Where | What it is |
+## Environment Variables
+| Variable | Component | Description |
 | --- | --- | --- |
-| `DATABASE_URL` | server | PostgreSQL connection string |
-| `SESSION_SECRET` | server | Long random string for signing login tokens |
-| `CORS_ORIGINS` | server | Site allowed to call the API, e.g. `https://venz-ochoa.github.io` |
-| `MODEL_URL` | server | Address of the prediction server |
-| `NODE_ENV` | server | `production` on Render |
-| `VITE_API_BASE_URL` | client | Public URL of the API, no trailing slash |
-
-Never commit real values. `VITE_` values are public.
+| `DATABASE_URL` | Server | The link to connect to your PostgreSQL database |
+| `SESSION_SECRET` | Server | A long, random password used to secure user logins |
+| `CORS_ORIGINS` | Server | The websites allowed to talk to the API (e.g., `[https://venz-ochoa.github.io](https://venz-ochoa.github.io)`) |
+| `MODEL_URL` | Server | The web address of your Python AI server |
+| `NODE_ENV` | Server | Set this to `production` when deploying it live |
+| `VITE_API_BASE_URL` | Client | The public web address of your Express API |
 
 ## Deploying
-
-- **Client:** GitHub Pages through the GitHub Actions workflow. Add `VITE_API_BASE_URL` under Settings > Secrets and variables > Actions, then push to `main`.
-- **API:** Render web service from the `server/` folder. Build: `npm install`. Start: `npm start`. Add the server variables in the dashboard.
-- **Database:** Render PostgreSQL. The API creates its tables on first start.
+* **Client (GitHub Pages):** Updates automatically using GitHub Actions. Add `VITE_API_BASE_URL` in your GitHub settings (Settings > Secrets and variables > Actions) before pushing your code to the `main` branch.
+* **Node API (Render):** Hosted as a Web Service running the `server/` folder. It builds using `npm install` and runs with `npm start`. You can add your environment variables right in the Render dashboard.
+* **Database (Render):** A PostgreSQL database. The Express API automatically sets up the required tables the first time it turns on.
 
 ## What I would do next
-
-- Use a custom domain so login can use secure cookies instead of a stored token
-- Put the model server behind https and add rate limiting
-- Add email verification and password reset
+* **Domain Integration:** Move to a custom web address so the app can use standard, secure cookies for logins.
+* **Security Enhancements:** Add HTTPS to the Python server and limit how often people can request predictions (rate limiting) to prevent spam.
+* **User Verification:** Add email confirmation and a "forgot password" feature.
+* **Model Optimization:** Improve the ML's heatmap so it highlights the skin spot more accurately without lighting up the edges of the photo.
 
 ## Author
+* Venice Ochoa (https://github.com/venz-ochoa)
+* Course and Section: Computer Science - 401
 
-Venice Ochoa ([github.com/venz-ochoa](https://github.com/venz-ochoa)). Course and section: Computer Science - 401.
+## License
+This project is licensed under the MIT License, see [LICENSE](LICENSE).
 
-## Licence
-
-MIT, see [LICENSE](LICENSE).
+# My final project
+* **Repository:** https://github.com/venz-ochoa/SkinTect
+* **Live site:** https://venz-ochoa.github.io/SkinTect/
+* **API:** https://skintect.onrender.com/healthz
