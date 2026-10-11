@@ -49,7 +49,7 @@ To do:
 - AI-USAGE.md: documenting AI tools used during development.
 
 ## 6. Screenshots
-- Testing of Week 3 features (login, history, heatmap, profile, dark mode, PDF export): located in docs/week 3
+- Testing of Week 3 features (login, history, heatmap, profile, dark mode, PDF export): located in screenshots/week 3
 
 ## 7. Out of scope
 - Non-lesion inputs: The model is a two-class classifier (benign or malignant), so it has no "not a skin lesion" option. If the input is not a skin lesion (for example a random object, a pet, or a blurry or empty photo), it still returns the closest match of the two classes with a confidence score, and the heatmap will still highlight something. These results are meaningless and should be ignored.
