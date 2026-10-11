@@ -7,8 +7,11 @@ import connectPgSimple from "connect-pg-simple";
 import multer from "multer";
 import fs from "node:fs";
 import jwt from "jsonwebtoken";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 const app = express();
+app.use(helmet());
 
 app.set("trust proxy", 1);
 
@@ -26,6 +29,26 @@ app.use(
 
 app.use(express.json({ limit: "100kb" }));
 
+//limits how many times someone can try to log in or sign up in 15 minutes so nobody can brute force passwords
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "Too many login or signup attempts, please try again later",
+  },
+});
+
+//limits how many scans or photo uploads someone can do in 15 minutes so nobody can spam the model server or database
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many uploads or predictions, please slow down" },
+});
+
 const PgStore = connectPgSimple(session);
 const isProd = process.env.NODE_ENV === "production";
 const upload = multer({
@@ -33,6 +56,11 @@ const upload = multer({
   limits: {
     fileSize: 5 * 1024 * 1024,
     fieldSize: 10 * 1024 * 1024,
+  },
+  //only allows real image files to be uploaded
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) cb(null, true);
+    else cb(new Error("Only image files are allowed"));
   },
 });
 
@@ -114,7 +142,7 @@ app.get("/readyz", async (request, response) => {
 //this is for user signup
 //first checks if the email is a string, and then checks if its empty, if it is, returns null which is a falsy
 //same goes for the password
-app.post("/api/signup", async (request, response, next) => {
+app.post("/api/signup", authLimiter, async (request, response, next) => {
   const name =
     typeof request.body.name === "string" ? request.body.name.trim() : "";
   const email =
@@ -174,7 +202,7 @@ app.post("/api/signup", async (request, response, next) => {
 
 //this is for user login
 //if email and password is null, returns an error since its a falsy
-app.post("/api/login", async (req, res, next) => {
+app.post("/api/login", authLimiter, async (req, res, next) => {
   const { email, password } = req.body || {};
   if (!email || !password) {
     return res.status(400).json({ error: "Email and password are required" });
@@ -234,18 +262,23 @@ app.get("/api/me", async (req, res, next) => {
 });
 
 //this is for updating the profile pic
-app.post("/api/me/profile", upload.single("image"), async (req, res, next) => {
-  if (!req.session.user || !req.file)
-    return res.status(400).json({ error: "Invalid request" });
+app.post(
+  "/api/me/profile",
+  uploadLimiter,
+  upload.single("image"),
+  async (req, res, next) => {
+    if (!req.session.user || !req.file)
+      return res.status(400).json({ error: "Invalid request" });
 
-  pool
-    .query("UPDATE users SET profile = $1 WHERE id = $2", [
-      req.file.buffer,
-      req.session.user.id,
-    ])
-    .then(() => res.json({ message: "Updated" }))
-    .catch(next);
-});
+    pool
+      .query("UPDATE users SET profile = $1 WHERE id = $2", [
+        req.file.buffer,
+        req.session.user.id,
+      ])
+      .then(() => res.json({ message: "Updated" }))
+      .catch(next);
+  },
+);
 
 //this is for updating the user profile, such as name and password and profile picture
 //it also saves the theme, send { "theme": "dark" } or { "theme": "light" }
@@ -302,42 +335,47 @@ app.put("/api/me", async (req, res, next) => {
 });
 
 //this is for saving a user's scan
-app.post("/api/scans", upload.single("photo"), async (req, res, next) => {
-  if (!req.session.user)
-    return res.status(401).json({ error: "Not authenticated" });
-  if (!req.file) return res.status(400).json({ error: "Photo is required" });
+app.post(
+  "/api/scans",
+  uploadLimiter,
+  upload.single("photo"),
+  async (req, res, next) => {
+    if (!req.session.user)
+      return res.status(401).json({ error: "Not authenticated" });
+    if (!req.file) return res.status(400).json({ error: "Photo is required" });
 
-  //save this to the database
-  const { heatmap, prediction, malignant_probability, body_location } =
-    req.body;
+    //save this to the database
+    const { heatmap, prediction, malignant_probability, body_location } =
+      req.body;
 
-  //the stats and trends count scans by prediction, so only the two real results are allowed
-  if (!["benign", "malignant"].includes(prediction))
-    return res.status(400).json({ error: "Invalid prediction" });
+    //the stats and trends count scans by prediction, so only the two real results are allowed
+    if (!["benign", "malignant"].includes(prediction))
+      return res.status(400).json({ error: "Invalid prediction" });
 
-  //the body area is optional, but if one was sent it has to be one of the known areas
-  const location = cleanLocation(body_location);
-  if (location === undefined)
-    return res.status(400).json({ error: "Invalid body location" });
+    //the body area is optional, but if one was sent it has to be one of the known areas
+    const location = cleanLocation(body_location);
+    if (location === undefined)
+      return res.status(400).json({ error: "Invalid body location" });
 
-  //inserts if everything is good
-  try {
-    await pool.query(
-      "INSERT INTO scans (user_id, photo, heatmap, prediction, malignant_probability, body_location) VALUES ($1, $2, $3, $4, $5, $6)",
-      [
-        req.session.user.id,
-        req.file.buffer,
-        heatmap,
-        prediction,
-        malignant_probability,
-        location,
-      ],
-    );
-    res.json({ message: "Scan saved" });
-  } catch (error) {
-    next(error);
-  }
-});
+    //inserts if everything is good
+    try {
+      await pool.query(
+        "INSERT INTO scans (user_id, photo, heatmap, prediction, malignant_probability, body_location) VALUES ($1, $2, $3, $4, $5, $6)",
+        [
+          req.session.user.id,
+          req.file.buffer,
+          heatmap,
+          prediction,
+          malignant_probability,
+          location,
+        ],
+      );
+      res.json({ message: "Scan saved" });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 //fetch the user scan history
 app.get("/api/scans", async (req, res, next) => {
@@ -554,27 +592,35 @@ app.post("/api/logout", (req, res) => {
 });
 
 //forwards the photo to the model server, so the browser never calls the http address directly
-app.post("/api/predict", upload.single("image"), async (req, res, next) => {
-  if (!req.file) return res.status(400).json({ error: "Image is required" });
-  try {
-    const form = new FormData();
-    form.append(
-      "image",
-      new Blob([req.file.buffer], { type: req.file.mimetype }),
-      req.file.originalname || "image.jpg",
-    );
-    const r = await fetch(process.env.MODEL_URL, {
-      method: "POST",
-      body: form,
-    });
-    const data = await r
-      .json()
-      .catch(() => ({ error: "Bad response from model" }));
-    res.status(r.status).json(data);
-  } catch (error) {
-    next(error);
-  }
-});
+app.post(
+  "/api/predict",
+  uploadLimiter,
+  upload.single("image"),
+  async (req, res, next) => {
+    //blocks anyone who is not logged in from using the model server
+    if (!req.session.user)
+      return res.status(401).json({ error: "Not authenticated" });
+    if (!req.file) return res.status(400).json({ error: "Image is required" });
+    try {
+      const form = new FormData();
+      form.append(
+        "image",
+        new Blob([req.file.buffer], { type: req.file.mimetype }),
+        req.file.originalname || "image.jpg",
+      );
+      const r = await fetch(process.env.MODEL_URL, {
+        method: "POST",
+        body: form,
+      });
+      const data = await r
+        .json()
+        .catch(() => ({ error: "Bad response from model" }));
+      res.status(r.status).json(data);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 app.use((request, response) => {
   response.status(404).json({ error: "No such route" });
@@ -583,7 +629,10 @@ app.use((request, response) => {
 // The detail goes in your logs; the visitor gets a plain message. Sending a
 // stack trace to a stranger tells them about your file layout and dependencies.
 app.use((error, request, response, next) => {
-  if (error.name === "MulterError") {
+  if (
+    error.name === "MulterError" ||
+    error.message === "Only image files are allowed"
+  ) {
     return response.status(400).json({ error: error.message });
   }
   console.error(error);
