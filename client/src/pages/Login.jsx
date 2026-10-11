@@ -37,6 +37,7 @@ export default function Login({onLogin}) {
     }
   }
   
+  //claude generated UI
   //icons come from the svg folder
   const icon = (name) => new URL(`../images/svg/${name}.svg`, import.meta.url).href;
   const focusRing =

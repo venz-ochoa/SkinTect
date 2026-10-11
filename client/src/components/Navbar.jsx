@@ -24,6 +24,8 @@ export default function NavBar({ user }) {
     const links = user ? [{ to: "/", label: "Home" }, { to: "/profile", label: "Profile" }] : LINKS;
     const focusRing =
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2";
+    
+  //claude generated UI
   return (
     <header className="st-drop sticky top-0 z-30 border-b border-text/20 bg-bg">
       {/*nav animations, switched off for reduced motion*/}

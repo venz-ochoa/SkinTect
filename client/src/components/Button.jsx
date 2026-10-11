@@ -1,6 +1,7 @@
 import { useState } from "react";
 
-// Button — filled (primary) or outline (secondary), now with a click ripple. same props as before
+//button — filled (primary) or outline (secondary), now with a click ripple. same props as before
+//claude generated UI
 export default function Button({ variant = "primary", type = "button", onClick, children, disabled }) {
   const [drops, setDrops] = useState([]);
   const styles = variant === "primary" ? "bg-primary text-white" : "bg-bg text-text border border-primary";

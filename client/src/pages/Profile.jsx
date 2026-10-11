@@ -201,6 +201,7 @@ export default function Profile({ onLogout }) {
     return d.toLocaleDateString([], { dateStyle: "medium" });
   }
 
+  //claude generated UI
   //preview of the photo the user just picked
   const picUrl = pic ? URL.createObjectURL(pic) : null;
   const avatarSrc = picUrl || (user?.profile ? `data:image/jpeg;base64,${user.profile}` : defaultProfile);

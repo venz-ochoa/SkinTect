@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-
+//claude generated UI
 //fills the empty margins on every page: drifting blobs and leaves that follow the pointer,
 //mount once in App.jsx
 const ITEMS = Array.from({ length: 10 }, (_, i) => ({

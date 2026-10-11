@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
+//claude generated UI
 //bump the version if you want everyone to see the splash again
 const KEY = "splashSeen_v1";
 //must match the key in ConsentModal, the splash waits until this is set

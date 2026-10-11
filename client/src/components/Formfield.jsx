@@ -1,11 +1,12 @@
 import { useId } from "react";
 
-// FormField — a labeled text input (for Login / Profile later)
+//formField — a labeled text input (for Login / Profile later)
 //icon, placeholder, autoComplete, required and right are all optional, so old usage still works
 //right is anything you want inside the end of the input, like a show password button
 export default function FormField({ label, type = "text", value, onChange, icon, placeholder, autoComplete, required, right }) {
   const id = useId();
 
+  //claude generated UI
   return (
     <div className="flex flex-col gap-1 text-text">
       <label htmlFor={id} className="font-medium">{label}</label>

@@ -1,5 +1,6 @@
 import { useRef } from "react";
 
+//claude generated UI
 //wrap any card: <Tilt><Card>...</Card></Tilt>. it leans toward the pointer in 3d and springs back on leave
 export default function Tilt({ children, max = 5, className = "", style }) {
   const ref = useRef(null);

@@ -31,6 +31,7 @@ export default function TrendsChart({ data, range, onRange, loading, failed }) {
     ? `Week of ${fmt(hovered.week)}: ${hovered.benign + hovered.malignant} ${hovered.benign + hovered.malignant === 1 ? "scan" : "scans"} (${hovered.benign} benign, ${hovered.malignant} malignant)`
     : `${totalScans} ${totalScans === 1 ? "scan" : "scans"} in the last ${range} weeks`;
 
+  //claude generated UI
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">

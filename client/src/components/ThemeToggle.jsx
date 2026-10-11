@@ -3,6 +3,7 @@ import { useState } from "react";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const KEY = "theme";
 
+//claude generated UI
 //is dark mode on? only if the user turned it on, the default is light
 function isDarkNow() {
   return document.documentElement.dataset.theme === "dark";

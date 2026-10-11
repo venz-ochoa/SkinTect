@@ -1,4 +1,5 @@
-// Badge — small colored label showing the result and confidence
+//badge — small colored label showing the result and confidence
+//claude generated UI
 export default function Badge({ label, confidence }) {
   const color = label === "benign" ? "text-benign" : "text-malignant";
   const pct = Math.round(confidence * 100);

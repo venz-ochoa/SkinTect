@@ -8,6 +8,7 @@ export default function SplitBar({ benign, malignant, track = "bg-surface", lege
   ];
   const pct = (n) => ((n / total) * 100).toFixed(1);
 
+  //claude generated UI
   return (
     <div>
       <div

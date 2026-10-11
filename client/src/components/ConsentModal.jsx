@@ -18,6 +18,7 @@ export default function ConsentModal() {
     setOpen(false);
   }
 
+  //claude generated UI
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
       <div

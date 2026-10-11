@@ -12,6 +12,7 @@ const warningSigns = [
 export function ResultDisclaimer({ result }) {
   const malignant = String(result).toLowerCase() === "malignant";
 
+  //claude generated UI
   return (
     <section
       role="note"

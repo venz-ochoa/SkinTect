@@ -42,6 +42,7 @@ export default function SignUp() {
   const focusRing =
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2";
 
+  //claude generated UI
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8 text-text md:px-6">
       {/*page animations*/}

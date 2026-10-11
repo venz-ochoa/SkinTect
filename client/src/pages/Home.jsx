@@ -181,6 +181,7 @@ export default function Home() {
     { icon: "check-circle", title: "Keep it sharp", text: "Hold still so the photo is in focus." },
   ];
 
+  //claude generated UI
   return (
     <div className="min-h-screen text-text">
       {/*scan line animation only plays while analyzing and is off for reduced motion*/}
