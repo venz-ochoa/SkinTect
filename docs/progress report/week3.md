@@ -51,12 +51,18 @@ To do:
 ## 6. Screenshots
 - Testing of Week 3 features (login, history, heatmap, profile, dark mode, PDF export): located in docs/ [week-3 folder]
 
-## 7. Known issues and next steps
+## 7. Out of scope
+- Non-lesion inputs: The model is a two-class classifier (benign or malignant), so it has no "not a skin lesion" option. If the input is not a skin lesion (for example a random object, a pet, or a blurry or empty photo), it still returns the closest match of the two classes with a confidence score, and the heatmap will still highlight something. These results are meaningless and should be ignored.
+- Image quality: Photos that are very dark, blurry, or far away from the skin are not handled, and the results may be unreliable.
+- Other conditions: The model only separates benign from malignant lesions. It does not identify specific diseases, rashes, infections, or other skin conditions.
+- Diagnosis: SkinTect is not a diagnostic tool. Results are for educational and early screening purposes only and do not replace seeing a dermatologist.
+
+## 8. Known issues and next steps
 - Current Progress: The project moved from local development to deployment. The database and API hosting moved to Render (PostgreSQL), the frontend is deployed with GitHub Pages, and model inference remains hosted on Google Cloud. The decision was made to stop using Supabase. Authentication, user sessions, scan history, profile management, and the heatmap are all working end to end.
 - Fixed Issues:
   - Navigation error: after logging in, users were not redirected to the Home page and stayed stuck on the login screen.
   - Heatmap size: the heatmap image was not displaying and threw an error because the file size was too large. Image compression was added to fix this.
   - Schema path: fixed the database schema path error in the Render setup.
   - Heatmap accuracy: the heatmap was not landing on the lesion itself. The model was retrained on both dermoscopic images and phone-camera photos of lesions, so the heatmap now focuses on the lesion more accurately and works better on the kind of photos users actually take.
-- Known Risks: The heatmap is a visual aid showing where the model focused, so it should not be treated as a diagnosis. Results are for educational and early screening purposes only.
-- Next Steps: The immediate focus is further polishing.
+- Known Risks: The model always picks a best match, even when the input is not a skin lesion (see Out of scope). The heatmap is a visual aid showing where the model focused, so it should not be treated as a diagnosis.
+- Next Steps: The immediate focus is further polishing. A possible later improvement is to detect and reject non-lesion images, for example with a low-confidence cutoff or a separate check before the prediction runs.
