@@ -7,7 +7,7 @@ The platform includes a private dashboard where users can save their scans, reco
 
 * **Live Site:** [Skintect](https://venz-ochoa.github.io/SkinTect/)
 * **API Health Check:** [Healthz](https://skintect.onrender.com/healthz)
-* **Demo Video:** [Demo](SkinTect%20Demo.mp4)
+* **Demo Video:** [Demo](https://drive.google.com/file/d/1iDrcMLC5uu606zlDQlERwzSv_gAgW-v2/view?usp=sharing)
 
 ## Features
 * **Predictive Analysis:** Uses an AI model (EfficientNet-B4) to check if an image is benign or malignant and highlights the important areas with a heatmap.
