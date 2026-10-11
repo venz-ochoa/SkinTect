@@ -133,12 +133,12 @@ looks exactly like what it is.
 ### 2026-10-03 - Dark Mode, Body Part Tagging, Trends Chart, PDF Export & Animations (Entry 2)
 
 - **Tool:** Claude (claude.ai)
-- **What I asked for:** Frontend components for the features I wanted to add to finish the app: an interactive body map for tagging lesions, a weekly trends chart, downloadable PDF scan reports, medical disclaimers, dark mode, and CSS entrance animations.
-- **What it gave back:** `BodyMap.jsx`, `TrendsChart.jsx`, `Disclaimer.jsx`, `ConsentModal.jsx`, `ThemeToggle.jsx`, `SplitBar.jsx`, `report.js` (using `jspdf`), and CSS keyframe animations for each page.
+- **What I asked for:** Frontend components for the features I wanted to add to finish the app: a body map for tagging lesions, a weekly trends chart, downloadable PDF scan reports, medical disclaimers, dark mode, and CSS entrance animations.
+- **What it gave back:** `bodyLocations.js`, `TrendsChart.jsx`, `Disclaimer.jsx`, `ConsentModal.jsx`, `ThemeToggle.jsx`, `SplitBar.jsx`, `report.js` (using `jspdf`), and CSS keyframe animations for each page.
 - **What I kept, what I changed, and why:** I kept the components and animations, wired them up to the new backend endpoints I wrote (`/api/scans/recent`, `/api/scans/trends`, `PATCH /api/scans/:id`), and removed the Google Maps "Find a dermatologist" link that Claude tried to add to the disclaimer because I didn't want external map links cluttering the result view.
 - **Commit:** https://github.com/venz-ochoa/SkinTect/commit/6eeeed53c8a14540717fffa78bff6917e2316690
 
-### 2026-10-04 - Render Deployment, CORS & Cross-Domain Session & General Troubleshooting
+### 2026-10-04 - Render Deployment, CORS & Cross-Domain Session & Logout Troubleshooting
 
 - **Tool:** Claude (claude.ai)
 - **What I asked for:** Help troubleshooting why login stayed stuck on the login screen after deploying the frontend to GitHub Pages and my Express/PostgreSQL backend to Render, along with fixing CORS errors and `schema.sql` file path issues.
