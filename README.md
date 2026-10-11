@@ -64,7 +64,7 @@ npm run dev              # Starts the website at http://localhost:5173
 * **Model Optimization:** Improve the ML's heatmap so it highlights the skin spot more accurately without lighting up the edges of the photo.
 
 ## Author
-* Venice Ochoa (https://github.com/venz-ochoa)
+* venz-ochoa (https://github.com/venz-ochoa)
 * Course and Section: Computer Science - 401
 
 ## License
