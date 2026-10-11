@@ -175,7 +175,7 @@ looks exactly like what it is.
 - **What it gave me:** In `History.jsx`, the scan cards displayed `malignant_probability` directly as the "confidence" score even when the lesion was classified as benign. Also, in `NavBar.jsx`, it checked if `user` was truthy without checking for `user.error`, and forgot to call `useLocation()`.
 - **What was wrong with it:** A benign scan with a 5% malignant probability showed "5% confidence" instead of 95% confidence in being benign. And because `/api/me` returns an error object when logged out, the navbar thought logged-out visitors were logged in and didn't update links after logging in without a page refresh.
 - **What I did instead:** Fixed the math to invert the probability for benign results (`1 - malignant_probability`), updated the auth check to `!user || user.error`, and called `useLocation()` so the navbar updates right away after logging in.
-- **Commit:** https://github.com/venz-ochoa/SkinTect/commit/6eeeed53c8a14540717fffa78bff6917e2316690
+- **Commit:** https://github.com/venz-ochoa/SkinTect/commit/48087e910b39ce01373a797aebae69e1e48dcceb, https://github.com/venz-ochoa/SkinTect/commit/02ba6ddf5329b222cf98efc1ac7ffe975a095156
 
 ## 3. Who wrote what
 
